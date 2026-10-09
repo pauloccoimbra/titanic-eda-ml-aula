@@ -58,7 +58,6 @@ titanic-eda-ml-aula/
 ├── LICENSE-CONTEUDO.md     # CC BY 4.0 (textos e figuras)
 ├── CITATION.cff            # o GitHub mostra "Cite this repository"
 ├── requirements.txt
-├── GUIA_GITHUB.md          # passo a passo para publicar este repositório
 ├── notebook/
 │   └── Titanic_Analise_Completa.ipynb
 ├── docs/                   # página de aula (GitHub Pages)
