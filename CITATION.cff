@@ -1,0 +1,21 @@
+cff-version: 1.2.0
+message: "Se você usar este material, cite-o como abaixo."
+title: "Titanic: da análise exploratória à predição de sobrevivência (material didático: página de aula, notebook e artigo)"
+type: software
+authors:
+  - family-names: Coimbra
+    given-names: Paulo C.
+    affiliation: "Universidade Federal de Juiz de Fora (UFJF)"
+date-released: 2026-10-09
+version: 1.0.0
+license: MIT
+repository-code: "https://github.com/pauloccoimbra/titanic-eda-ml-aula"
+url: "https://pauloccoimbra.github.io/titanic-eda-ml-aula/"
+keywords:
+  - titanic
+  - kaggle
+  - exploratory data analysis
+  - machine learning
+  - logistic regression
+  - teaching
+  - statistics

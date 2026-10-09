@@ -1,0 +1,2886 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Titanic: da análise exploratória à predição, aula</title>
+<meta name="description" content="Aula prática e didática com o conjunto de dados do Titanic (Kaggle): análise exploratória, inferência estatística e machine learning em Python, com código para copiar e resultados comentados.">
+<meta name="author" content="Paulo C. Coimbra">
+<meta property="og:title" content="Titanic: da análise exploratória à predição">
+<meta property="og:description" content="Aula prática com código copiável, resultados comentados e conexão com a teoria de análise de dados e ML.">
+<meta property="og:type" content="article">
+<style>:root{
+  --bg:#fbfaf7; --papel:#ffffff; --tinta:#1d2733; --suave:#5b6675; --linha:#e3e0d8;
+  --azul:#1f6f8b; --azul-bg:#e8f2f6; --verm:#b8394a; --ouro:#b7791f; --ouro-bg:#fbf3df;
+  --cod-bg:#f4f3ef; --cod-tinta:#22303c; --saida-bg:#fcfcfa;
+  --serif: ui-serif, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
+  --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+:root[data-tema="escuro"]{
+  --bg:#12171d; --papel:#1a212a; --tinta:#e6e9ee; --suave:#9aa6b4; --linha:#2b3541;
+  --azul:#6cc0dc; --azul-bg:#17303a; --verm:#ec7a8a; --ouro:#e2b25a; --ouro-bg:#2c2616;
+  --cod-bg:#0f1419; --cod-tinta:#dbe3ec; --saida-bg:#161d25;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-tema="claro"]){
+    --bg:#12171d; --papel:#1a212a; --tinta:#e6e9ee; --suave:#9aa6b4; --linha:#2b3541;
+    --azul:#6cc0dc; --azul-bg:#17303a; --verm:#ec7a8a; --ouro:#e2b25a; --ouro-bg:#2c2616;
+    --cod-bg:#0f1419; --cod-tinta:#dbe3ec; --saida-bg:#161d25;
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+body{margin:0;background:var(--bg);color:var(--tinta);font:17px/1.65 var(--sans);-webkit-text-size-adjust:100%}
+body.apres{font-size:21px}
+#progresso{position:fixed;top:0;left:0;height:3px;width:0;background:var(--azul);z-index:50}
+.topo{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:12px;padding:10px 18px;background:var(--papel);border-bottom:1px solid var(--linha)}
+.marca{font:700 17px var(--serif);color:var(--tinta);text-decoration:none;letter-spacing:.2px}
+.acoes{margin-left:auto;display:flex;gap:8px;align-items:center}
+.btn,.btn-ico,.btn-copiar{font:600 13px var(--sans);color:var(--tinta);background:var(--papel);border:1px solid var(--linha);border-radius:6px;padding:7px 12px;cursor:pointer}
+.btn:hover,.btn-ico:hover,.btn-copiar:hover{border-color:var(--azul);color:var(--azul)}
+.btn[aria-pressed="true"]{background:var(--azul);color:#fff;border-color:var(--azul)}
+.btn-ico{padding:6px 10px;font-size:16px}
+#btn-menu{display:none}
+.layout{display:grid;grid-template-columns:290px minmax(0,1fr);max-width:1320px;margin:0 auto}
+#indice{position:sticky;top:57px;align-self:start;height:calc(100vh - 57px);overflow:auto;padding:22px 14px 40px 20px;border-right:1px solid var(--linha);font-size:14px}
+#indice a{display:block;padding:6px 10px;border-left:2px solid transparent;color:var(--suave);text-decoration:none;line-height:1.35}
+#indice a:hover{color:var(--tinta)}
+#indice a.ativo{color:var(--azul);border-left-color:var(--azul);font-weight:600}
+body.apres .layout{grid-template-columns:minmax(0,1fr)}
+body.apres #indice{display:none}
+#conteudo{padding:28px 32px 80px;min-width:0;max-width:980px}
+h1,h2,h3,h4{font-family:var(--serif);line-height:1.25;color:var(--tinta)}
+h1{font-size:2.1em;margin:.2em 0 .5em}
+h2{font-size:1.65em;margin:2.2em 0 .6em;padding-top:.6em;border-top:2px solid var(--linha)}
+h3{font-size:1.25em;margin:1.8em 0 .5em}
+h4{font-size:1.05em;margin:1.4em 0 .4em}
+p,li{max-width:74ch}
+a{color:var(--azul)}
+code{font:.88em var(--mono);background:var(--cod-bg);padding:.12em .36em;border-radius:4px}
+.texto table{border-collapse:collapse;margin:1em 0;font-size:.92em;width:100%}
+.texto th,.texto td{border:1px solid var(--linha);padding:7px 10px;text-align:left;vertical-align:top}
+.texto th{background:var(--cod-bg)}
+.texto blockquote{margin:1em 0;padding:.4em 1em;border-left:3px solid var(--ouro);background:var(--ouro-bg);border-radius:0 6px 6px 0}
+.texto blockquote p{margin:.5em 0}
+.leitura{background:var(--azul-bg);border-left:4px solid var(--azul);border-radius:0 8px 8px 0;padding:6px 18px;margin:18px 0}
+.leitura p:first-child::before{content:"💡 ";}
+.citar{background:var(--papel);border:1px solid var(--linha);border-radius:10px;padding:6px 22px;margin:30px 0}
+.aviso{background:var(--ouro-bg);border-left:4px solid var(--ouro);padding:10px 16px;border-radius:0 8px 8px 0;margin:16px 0}
+.peq{font-size:.88em;color:var(--suave)}
+.celula{margin:20px 0;border:1px solid var(--linha);border-radius:10px;background:var(--papel);overflow:hidden}
+.cel-topo{display:flex;align-items:center;justify-content:space-between;padding:6px 12px;background:var(--cod-bg);border-bottom:1px solid var(--linha)}
+.cel-rotulo{font:600 12px var(--sans);color:var(--suave);text-transform:uppercase;letter-spacing:.06em}
+.btn-copiar{padding:4px 10px;font-size:12px}
+.btn-copiar.ok{background:var(--azul);color:#fff;border-color:var(--azul)}
+pre.codigo{margin:0;padding:14px 16px;background:var(--cod-bg);color:var(--cod-tinta);overflow:auto;font:13.5px/1.55 var(--mono);tab-size:4}
+.celula pre.codigo{border-radius:0}
+.texto pre.codigo{border-radius:8px;margin:12px 0}
+pre.codigo code{background:none;padding:0;font:inherit;color:inherit}
+body.apres pre.codigo{font-size:16px}
+.saida{padding:12px 14px 14px;background:var(--saida-bg);border-top:1px dashed var(--linha)}
+.saida-rotulo{font:600 11px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--azul);margin-bottom:8px}
+pre.saida-txt{margin:6px 0;padding:10px 12px;background:var(--cod-bg);color:var(--cod-tinta);border-radius:6px;overflow:auto;font:12.8px/1.5 var(--mono);white-space:pre}
+.saida figure{margin:10px 0;text-align:center}
+.saida img{max-width:100%;height:auto;background:#fff;border-radius:6px;border:1px solid var(--linha)}
+.saida figcaption{font-size:.8em;color:var(--suave);margin-top:4px}
+.tabela{overflow-x:auto;margin:8px 0}
+.saida table{border-collapse:collapse;font:12.5px var(--mono);color:var(--tinta)}
+.saida th,.saida td{border:1px solid var(--linha);padding:3px 8px;text-align:right}
+.saida th{background:var(--cod-bg);font-weight:600}
+.saida table .col_heading, .saida table .row_heading{text-align:left}
+.rodape{margin-top:60px;padding-top:18px;border-top:1px solid var(--linha);color:var(--suave);font-size:.88em}
+/* realce de sintaxe (highlight.js sem tema externo) */
+.hljs-keyword,.hljs-literal,.hljs-built_in{color:#a3427b}
+.hljs-string,.hljs-subst{color:#2f7a3f}
+.hljs-comment{color:#6e7b88;font-style:italic}
+.hljs-number{color:#b25a14}
+.hljs-title,.hljs-function .hljs-title{color:#1f5fa8}
+.hljs-meta,.hljs-params{color:inherit}
+:root[data-tema="escuro"] .hljs-keyword,:root[data-tema="escuro"] .hljs-built_in,:root[data-tema="escuro"] .hljs-literal{color:#e08fc0}
+:root[data-tema="escuro"] .hljs-string{color:#8fd19e}
+:root[data-tema="escuro"] .hljs-comment{color:#8190a0}
+:root[data-tema="escuro"] .hljs-number{color:#f0a86a}
+:root[data-tema="escuro"] .hljs-title{color:#8dbcf0}
+@media (prefers-color-scheme: dark){
+  :root:not([data-tema="claro"]) .hljs-keyword,:root:not([data-tema="claro"]) .hljs-built_in,:root:not([data-tema="claro"]) .hljs-literal{color:#e08fc0}
+  :root:not([data-tema="claro"]) .hljs-string{color:#8fd19e}
+  :root:not([data-tema="claro"]) .hljs-comment{color:#8190a0}
+  :root:not([data-tema="claro"]) .hljs-number{color:#f0a86a}
+  :root:not([data-tema="claro"]) .hljs-title{color:#8dbcf0}
+}
+@media (max-width: 900px){
+  .layout{grid-template-columns:minmax(0,1fr)}
+  #btn-menu{display:inline-block}
+  #indice{position:fixed;left:0;top:57px;width:280px;max-width:86vw;z-index:45;background:var(--papel);transform:translateX(-102%);transition:transform .2s;box-shadow:0 8px 30px rgba(0,0,0,.25)}
+  #indice.aberto{transform:none}
+  #conteudo{padding:20px 16px 60px}
+  #btn-copiar-tudo{display:none}
+  .btn{padding:6px 9px}
+}
+@media print{.topo,#indice,.btn-copiar,#progresso{display:none}.layout{display:block}.celula{break-inside:avoid}}
+.texto p,.texto li,.texto blockquote{overflow-wrap:anywhere}
+.texto table{display:block;overflow-x:auto}
+.tabela table.conexoes{display:table}
+
+/* modo apresentação: usa toda a largura e distribui o conteúdo de modo uniforme */
+body.apres .layout{max-width:none;width:100%;margin:0}
+body.apres #conteudo{max-width:none;width:100%;padding:28px clamp(24px,5vw,90px) 80px}
+body.apres p,body.apres li,body.apres .texto blockquote{max-width:none}
+body.apres .celula,body.apres .texto table,body.apres .tabela{width:100%}
+body.apres .saida img{max-width:100%;width:auto;max-height:80vh}
+body.apres .texto{width:100%}
+</style>
+</head>
+<body>
+<div id="progresso" aria-hidden="true"></div>
+<header class="topo">
+  <button id="btn-menu" class="btn-ico" aria-label="Abrir índice">☰</button>
+  <a class="marca" href="#">Titanic · EDA &amp; ML</a>
+  <div class="acoes">
+    <button id="btn-copiar-tudo" class="btn" type="button">Copiar todo o código</button>
+    <button id="btn-apres" class="btn" type="button" aria-pressed="false">Modo apresentação</button>
+    <button id="btn-tema" class="btn-ico" type="button" aria-label="Alternar tema">Tema</button>
+  </div>
+</header>
+<div class="layout">
+  <nav id="indice" aria-label="Índice"><a href="#contexto">Contexto: Kaggle e ML</a><a href="#1-configuração-e-carga-dos-dados">1. Configuração e carga dos dados</a><a href="#2-visão-geral-e-qualidade-dos-dados">2. Visão geral e qualidade dos dados</a><a href="#3-análise-univariada">3. Análise univariada</a><a href="#4-análise-bivariada-e-multivariada">4. Análise bivariada e multivariada</a><a href="#5-engenharia-de-atributos">5. Engenharia de atributos</a><a href="#6-tratamento-das-idades-ausentes-20-dos-passageiros">6. Tratamento das idades ausentes (20% dos passageiros)</a><a href="#7-inferência-estatística">7. Inferência estatística</a><a href="#8-correlações-multicolinearidade-e-informação-mútua">8. Correlações, multicolinearidade e informação mútua</a><a href="#9-modelagem-preditiva">9. Modelagem preditiva</a><a href="#10-diagnóstico-do-modelo-o-que-ele-aprendeu-e-onde-erra">10. Diagnóstico do modelo: o que ele aprendeu e onde erra</a><a href="#11-resenha-dos-resultados">11. 📝 Resenha dos resultados</a><a href="#exercicios">Exercícios propostos</a><a href="#citar">Como citar e licença</a></nav>
+  <main id="conteudo">
+<section class="texto"><h1>🚢 Titanic: Análise Exploratória, Inferência Estatística e Predição de Sobrevivência</h1>
+<p>O naufrágio do RMS Titanic, em <strong>15 de abril de 1912</strong>, durante a viagem inaugural de Southampton a Nova York, matou mais de 1.500 pessoas. Os botes salva-vidas só acomodavam cerca de metade dos que estavam a bordo, e a forma como esses lugares foram ocupados deixou marcas profundas nos dados.</p>
+<p>Este notebook é o material prático da aula <strong>"Titanic: da análise exploratória à predição"</strong> e usa os dados do clássico desafio <a href="https://www.kaggle.com/competitions/titanic">Titanic: Machine Learning from Disaster</a> do Kaggle. Ele foi pensado para ser lido de cima para baixo e para que cada trecho de código possa ser executado e reproduzido pelos alunos.</p>
+<h3 id="perguntas-que-queremos-responder">Perguntas que queremos responder</h3>
+<ol>
+<li>Quais fatores demográficos (<strong>sexo, idade, classe</strong>) mais pesaram na sobrevivência?</li>
+<li>A <strong>tarifa</strong> e o <strong>porto de embarque</strong> influenciaram, ou apenas refletem outras variáveis?</li>
+<li>O <strong>tamanho da família</strong> (ou do grupo de viagem) importou?</li>
+<li>É possível construir um <strong>modelo preditivo</strong> confiável? Quão bom ele é, de verdade, comparado a uma regra simples?</li>
+</ol>
+<h3 id="roteiro">Roteiro</h3>
+<table>
+<thead>
+<tr>
+<th>Parte</th>
+<th>Conteúdo</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Configuração e carga dos dados</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Visão geral e qualidade dos dados (valores ausentes)</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Análise univariada</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Análise bivariada e multivariada (com intervalos de confiança)</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Engenharia de atributos (título, família, convés, bilhete)</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Tratamento de idades ausentes</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Inferência estatística (qui-quadrado, odds ratio, regressão logística, interações)</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Correlações e informação mútua</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Modelagem preditiva (validação cruzada, ajuste, teste final)</td>
+</tr>
+<tr>
+<td>10</td>
+<td>Diagnóstico do modelo (importância, limiar, erros)</td>
+</tr>
+<tr>
+<td>11</td>
+<td><strong>Resenha dos resultados</strong></td>
+</tr>
+</tbody>
+</table></section>
+<section class="texto" id="contexto-bloco">
+<h2 id="contexto">Antes de começar: o Titanic, o Kaggle e a ciência de dados</h2>
+
+<h3 id="kaggle">O desafio do Kaggle</h3>
+<p>O <a href="https://www.kaggle.com/competitions/titanic" rel="noopener">Titanic: Machine Learning from Disaster</a> é a competição de entrada do <a href="https://www.kaggle.com" rel="noopener">Kaggle</a>, a plataforma de desafios de ciência de dados. É o "<em>hello world</em>" do aprendizado de máquina supervisionado: quase todo estudante passa por ele.</p>
+<ul>
+<li><strong>Dados:</strong> <code>train.csv</code> (891 passageiros, com a coluna <code>Survived</code>) e <code>test.csv</code> (418 passageiros, <em>sem</em> o desfecho).</li>
+<li><strong>Tarefa:</strong> aprender com o treino e prever <code>Survived</code> (0/1) para cada passageiro do teste, enviando um arquivo CSV com as colunas <code>PassengerId</code> e <code>Survived</code>.</li>
+<li><strong>Métrica:</strong> acurácia sobre o teste oculto, exibida no <em>leaderboard</em> público.</li>
+</ul>
+<div class="aviso"><strong>Dois cuidados.</strong> (1) Como <code>test.csv</code> não traz o desfecho, aqui separamos 20% do <code>train.csv</code> como conjunto de teste próprio, o que permite calcular métricas, intervalos e testes. (2) Pontuações perfeitas no <em>leaderboard</em> costumam vir de consultar os desfechos reais, publicados na internet, e não de modelagem: não têm valor pedagógico (nem científico). O objetivo aqui é <strong>entender</strong>, não "subir no ranking". Confira as regras e a situação atual na <a href="https://www.kaggle.com/competitions/titanic" rel="noopener">página da competição</a>.</div>
+
+<h3 id="porque-titanic">Por que o Titanic é um excelente laboratório de análise de dados e ML</h3>
+<p>Poucos conjuntos de dados reúnem, em tão pouco espaço, tantos dos problemas reais que um analista enfrenta. Cada característica da base abre um tópico teórico, e é assim que organizamos a aula:</p>
+<div class="tabela"><table class="conexoes">
+<thead><tr><th>O que a base tem</th><th>Conceito de análise de dados / ML</th><th>Onde aparece</th></tr></thead>
+<tbody>
+<tr><td>Desfecho binário (<code>Survived</code>)</td><td>Classificação; regressão logística; acurácia, AUC, calibração</td><td>Partes 4, 7 e 9</td></tr>
+<tr><td>Variáveis numéricas e categóricas misturadas</td><td>Pré-processamento, <em>one-hot encoding</em>, padronização</td><td>Parte 9</td></tr>
+<tr><td>Dados ausentes: <code>Age</code> (20%), <code>Cabin</code> (77%)</td><td>Mecanismos de ausência (MCAR/MAR/MNAR), imputação, indicadores de ausência</td><td>Partes 2 e 6</td></tr>
+<tr><td><code>Fare</code> muito assimétrica</td><td>Transformação logarítmica, medidas robustas, testes não paramétricos</td><td>Partes 3 e 7.3</td></tr>
+<tr><td>Texto em <code>Name</code> e <code>Ticket</code></td><td>Engenharia de atributos (título, tamanho do grupo)</td><td>Parte 5</td></tr>
+<tr><td>Porto de embarque correlacionado com classe</td><td>Confusão (<em>confounding</em>), paradoxo de Simpson, associação ≠ causa</td><td>Partes 4.6 e 7.5</td></tr>
+<tr><td>Efeito do sexo depende da classe</td><td>Interação; modelos aditivos × não aditivos; razão de verossimilhança</td><td>Parte 7.6</td></tr>
+<tr><td>Apenas 891 linhas</td><td>Incerteza amostral, intervalos de confiança, validação cruzada repetida</td><td>Partes 4 e 9</td></tr>
+<tr><td>Muitas colunas derivadas e redundantes</td><td>Multicolinearidade (VIF), informação mútua, importância por permutação</td><td>Partes 8 e 10</td></tr>
+<tr><td>Vários modelos "empatam"</td><td>Linhas de base, viés-variância, tamanho do teste, McNemar</td><td>Parte 9</td></tr>
+<tr><td>Risco de "colar" informação do teste no treino</td><td>Vazamento de dados (<em>data leakage</em>) e <code>Pipeline</code></td><td>Parte 9</td></tr>
+</tbody></table></div>
+
+<h3 id="objetivos">Objetivos de aprendizagem</h3>
+<p>Ao final, o aluno deverá ser capaz de:</p>
+<ol>
+<li>conduzir uma análise exploratória organizada (univariada, bivariada e multivariada) <strong>com medidas de incerteza</strong>;</li>
+<li>diagnosticar e tratar dados ausentes, explicando por que a ausência pode ser informativa;</li>
+<li>distinguir associação bruta, associação ajustada, confusão e interação, e escolher o teste estatístico adequado a cada situação;</li>
+<li>construir um <strong>pipeline</strong> de ML sem vazamento, comparar modelos por validação cruzada e avaliar o resultado final no teste;</li>
+<li>interpretar métricas (acurácia, precisão, recall, F1, AUC, Brier) <strong>contra linhas de base</strong>;</li>
+<li>comunicar resultados e limitações com honestidade.</li>
+</ol>
+
+<h3 id="como-usar">Como usar esta página</h3>
+<ul>
+<li><strong>Na aula:</strong> role a página na ordem; use o índice à esquerda. O botão <em>Modo apresentação</em> aumenta a fonte e esconde o índice.</li>
+<li><strong>Depois da aula:</strong> cada caixa de código tem um botão <em>Copiar código</em>. Para reproduzir o notebook, crie um notebook vazio e cole as células <strong>na ordem</strong> (cada célula depende das anteriores). O botão <em>Copiar todo o código</em> no topo reúne tudo de uma vez, com marcadores <code>#%%</code> entre as células.</li>
+<li><strong>Resultados:</strong> as saídas (tabelas e gráficos) mostradas abaixo de cada código são as obtidas com a semente aleatória <code>SEED = 42</code>, e devem se repetir no seu computador (pequenas diferenças podem ocorrer entre versões das bibliotecas).</li>
+</ul>
+<h4>Instalação rápida</h4>
+<pre class="codigo"><code class="language-bash" id="cod-inst">pip install pandas numpy matplotlib seaborn scipy statsmodels scikit-learn jupyter</code></pre>
+<p class="peq">No Google Colab, tudo isso já vem instalado.</p>
+</section>
+<section class="texto"><h2 id="1-configuração-e-carga-dos-dados">1. Configuração e carga dos dados</h2>
+<p>Primeiro importamos as bibliotecas e definimos um estilo visual único para todo o notebook (duas cores fixas: <strong>vermelho = morreu</strong>, <strong>azul = sobreviveu</strong>), para que os gráficos sejam lidos de forma consistente.</p></section>
+<div class="celula" id="cel-1"><div class="cel-topo"><span class="cel-rotulo">Célula de código 1</span><button class="btn-copiar" type="button" data-alvo="cod-1">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-1"># --- Bibliotecas ---------------------------------------------------------
+import warnings
+warnings.filterwarnings(&quot;ignore&quot;)          # deixa a saída limpa (avisos de versão não afetam os resultados)
+
+import re
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy import stats
+import statsmodels.api as sm
+import statsmodels.formula.api as smf
+
+from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.model_selection import (train_test_split, StratifiedKFold, RepeatedStratifiedKFold,
+                                     cross_validate, cross_val_predict, GridSearchCV, learning_curve)
+from sklearn.pipeline import Pipeline
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.impute import SimpleImputer
+from sklearn.dummy import DummyClassifier
+from sklearn.linear_model import LogisticRegression
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier, GradientBoostingClassifier
+from sklearn.inspection import permutation_importance
+from sklearn.calibration import calibration_curve
+from sklearn.feature_selection import mutual_info_classif
+from sklearn.metrics import (accuracy_score, precision_score, recall_score, f1_score, roc_auc_score,
+                             brier_score_loss, confusion_matrix, ConfusionMatrixDisplay, roc_curve,
+                             precision_recall_curve, classification_report)
+
+# --- Estilo visual -----------------------------------------------------------
+sns.set_theme(style=&quot;whitegrid&quot;, context=&quot;notebook&quot;)
+plt.rcParams.update({&quot;figure.dpi&quot;: 100, &quot;axes.titleweight&quot;: &quot;bold&quot;,
+                     &quot;axes.spines.top&quot;: False, &quot;axes.spines.right&quot;: False})
+COR_MORREU, COR_SOBREVIVEU = &quot;#d1495b&quot;, &quot;#2e86ab&quot;
+PALETA_SOBREV = {0: COR_MORREU, 1: COR_SOBREVIVEU}
+SEED = 42                                   # semente para reprodutibilidade
+np.random.seed(SEED)</code></pre></div>
+<section class="texto"><h3 id="carregando-os-dados">Carregando os dados</h3>
+<p>O arquivo é o <code>train.csv</code> do Kaggle (891 passageiros, 12 colunas). O código tenta, em ordem: (1) um arquivo local <code>titanic.csv</code>/<code>train.csv</code>; (2) algumas URLs públicas. Se nenhuma funcionar (por exemplo, sem internet), basta colocar o <code>train.csv</code> na mesma pasta do notebook.</p></section>
+<div class="celula" id="cel-2"><div class="cel-topo"><span class="cel-rotulo">Célula de código 2</span><button class="btn-copiar" type="button" data-alvo="cod-2">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-2">import os
+FONTES = [&quot;titanic.csv&quot;, &quot;train.csv&quot;,
+          &quot;https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv&quot;,
+          &quot;https://d17h27t6h515a5.cloudfront.net/topher/2016/September/57e9a84c_titanic-data/titanic-data.csv&quot;]
+
+df_raw = None
+for fonte in FONTES:
+    try:
+        if not fonte.startswith(&quot;http&quot;) and not os.path.exists(fonte):
+            continue
+        df_raw = pd.read_csv(fonte)
+        print(f&quot;✅ Dados carregados de: {fonte}&quot;)
+        break
+    except Exception as e:
+        print(f&quot;⚠️ Falhou ({fonte[:60]}...): {type(e).__name__}&quot;)
+if df_raw is None:
+    raise FileNotFoundError(&quot;Não foi possível carregar os dados. Coloque &#x27;train.csv&#x27; do Kaggle na pasta do notebook.&quot;)
+
+df = df_raw.copy()          # trabalhamos sempre numa cópia; o original fica intacto
+print(&quot;Dimensões (linhas, colunas):&quot;, df.shape)
+df.head()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">✅ Dados carregados de: https://raw.githubusercontent.com/datasciencedojo/datasets/master/titanic.csv
+Dimensões (linhas, colunas): (891, 12)
+</pre><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>PassengerId</th>
+      <th>Survived</th>
+      <th>Pclass</th>
+      <th>Name</th>
+      <th>Sex</th>
+      <th>Age</th>
+      <th>SibSp</th>
+      <th>Parch</th>
+      <th>Ticket</th>
+      <th>Fare</th>
+      <th>Cabin</th>
+      <th>Embarked</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>1</td>
+      <td>0</td>
+      <td>3</td>
+      <td>Braund, Mr. Owen Harris</td>
+      <td>male</td>
+      <td>22.0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>A/5 21171</td>
+      <td>7.2500</td>
+      <td>NaN</td>
+      <td>S</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>2</td>
+      <td>1</td>
+      <td>1</td>
+      <td>Cumings, Mrs. John Bradley (Florence Briggs Th...</td>
+      <td>female</td>
+      <td>38.0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>PC 17599</td>
+      <td>71.2833</td>
+      <td>C85</td>
+      <td>C</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>3</td>
+      <td>1</td>
+      <td>3</td>
+      <td>Heikkinen, Miss. Laina</td>
+      <td>female</td>
+      <td>26.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>STON/O2. 3101282</td>
+      <td>7.9250</td>
+      <td>NaN</td>
+      <td>S</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>4</td>
+      <td>1</td>
+      <td>1</td>
+      <td>Futrelle, Mrs. Jacques Heath (Lily May Peel)</td>
+      <td>female</td>
+      <td>35.0</td>
+      <td>1</td>
+      <td>0</td>
+      <td>113803</td>
+      <td>53.1000</td>
+      <td>C123</td>
+      <td>S</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>5</td>
+      <td>0</td>
+      <td>3</td>
+      <td>Allen, Mr. William Henry</td>
+      <td>male</td>
+      <td>35.0</td>
+      <td>0</td>
+      <td>0</td>
+      <td>373450</td>
+      <td>8.0500</td>
+      <td>NaN</td>
+      <td>S</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div></div>
+<section class="texto"><p><strong>Dicionário de dados</strong></p>
+<table>
+<thead>
+<tr>
+<th>Coluna</th>
+<th>Significado</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>PassengerId</code></td>
+<td>identificador</td>
+</tr>
+<tr>
+<td><code>Survived</code></td>
+<td><strong>alvo</strong>: 1 = sobreviveu, 0 = morreu</td>
+</tr>
+<tr>
+<td><code>Pclass</code></td>
+<td>classe da passagem (1 = alta, 2 = média, 3 = baixa)</td>
+</tr>
+<tr>
+<td><code>Name</code></td>
+<td>nome (contém o <strong>título</strong>: Mr., Mrs., Miss., Master. etc.)</td>
+</tr>
+<tr>
+<td><code>Sex</code></td>
+<td>sexo</td>
+</tr>
+<tr>
+<td><code>Age</code></td>
+<td>idade em anos (frações para bebês)</td>
+</tr>
+<tr>
+<td><code>SibSp</code></td>
+<td>nº de irmãos/cônjuges a bordo</td>
+</tr>
+<tr>
+<td><code>Parch</code></td>
+<td>nº de pais/filhos a bordo</td>
+</tr>
+<tr>
+<td><code>Ticket</code></td>
+<td>número do bilhete (grupos viajam com o mesmo bilhete)</td>
+</tr>
+<tr>
+<td><code>Fare</code></td>
+<td>tarifa paga (£)</td>
+</tr>
+<tr>
+<td><code>Cabin</code></td>
+<td>cabine (muito incompleta; a letra indica o convés)</td>
+</tr>
+<tr>
+<td><code>Embarked</code></td>
+<td>porto: C = Cherbourg, Q = Queenstown, S = Southampton</td>
+</tr>
+</tbody>
+</table></section>
+<section class="texto"><h2 id="2-visão-geral-e-qualidade-dos-dados">2. Visão geral e qualidade dos dados</h2>
+<p>Antes de qualquer gráfico, convém saber <strong>o que existe e o que falta</strong>. Dados ausentes raramente são aleatórios, e isso pode enviesar conclusões.</p></section>
+<div class="celula" id="cel-3"><div class="cel-topo"><span class="cel-rotulo">Célula de código 3</span><button class="btn-copiar" type="button" data-alvo="cod-3">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-3"># Tipos de dados, valores únicos e ausentes, lado a lado
+resumo = pd.DataFrame({
+    &quot;tipo&quot;: df.dtypes.astype(str),
+    &quot;ausentes&quot;: df.isna().sum(),
+    &quot;% ausentes&quot;: (df.isna().mean() * 100).round(1),
+    &quot;valores únicos&quot;: df.nunique(),
+})
+display(resumo)
+print(&quot;Linhas duplicadas:&quot;, df.duplicated().sum())
+print(&quot;PassengerId únicos:&quot;, df[&quot;PassengerId&quot;].is_unique)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>tipo</th>
+      <th>ausentes</th>
+      <th>% ausentes</th>
+      <th>valores únicos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>PassengerId</th>
+      <td>int64</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>891</td>
+    </tr>
+    <tr>
+      <th>Survived</th>
+      <td>int64</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>Pclass</th>
+      <td>int64</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <th>Name</th>
+      <td>str</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>891</td>
+    </tr>
+    <tr>
+      <th>Sex</th>
+      <td>str</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>2</td>
+    </tr>
+    <tr>
+      <th>Age</th>
+      <td>float64</td>
+      <td>177</td>
+      <td>19.9</td>
+      <td>88</td>
+    </tr>
+    <tr>
+      <th>SibSp</th>
+      <td>int64</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <th>Parch</th>
+      <td>int64</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>7</td>
+    </tr>
+    <tr>
+      <th>Ticket</th>
+      <td>str</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>681</td>
+    </tr>
+    <tr>
+      <th>Fare</th>
+      <td>float64</td>
+      <td>0</td>
+      <td>0.0</td>
+      <td>248</td>
+    </tr>
+    <tr>
+      <th>Cabin</th>
+      <td>str</td>
+      <td>687</td>
+      <td>77.1</td>
+      <td>147</td>
+    </tr>
+    <tr>
+      <th>Embarked</th>
+      <td>str</td>
+      <td>2</td>
+      <td>0.2</td>
+      <td>3</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><pre class="saida-txt">Linhas duplicadas: 0
+PassengerId únicos: True
+</pre></div></div>
+<div class="celula" id="cel-4"><div class="cel-topo"><span class="cel-rotulo">Célula de código 4</span><button class="btn-copiar" type="button" data-alvo="cod-4">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-4"># Estatísticas descritivas das variáveis numéricas
+df[[&quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare&quot;]].describe().round(2)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Age</th>
+      <th>SibSp</th>
+      <th>Parch</th>
+      <th>Fare</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>count</th>
+      <td>714.00</td>
+      <td>891.00</td>
+      <td>891.00</td>
+      <td>891.00</td>
+    </tr>
+    <tr>
+      <th>mean</th>
+      <td>29.70</td>
+      <td>0.52</td>
+      <td>0.38</td>
+      <td>32.20</td>
+    </tr>
+    <tr>
+      <th>std</th>
+      <td>14.53</td>
+      <td>1.10</td>
+      <td>0.81</td>
+      <td>49.69</td>
+    </tr>
+    <tr>
+      <th>min</th>
+      <td>0.42</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+    </tr>
+    <tr>
+      <th>25%</th>
+      <td>20.12</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>7.91</td>
+    </tr>
+    <tr>
+      <th>50%</th>
+      <td>28.00</td>
+      <td>0.00</td>
+      <td>0.00</td>
+      <td>14.45</td>
+    </tr>
+    <tr>
+      <th>75%</th>
+      <td>38.00</td>
+      <td>1.00</td>
+      <td>0.00</td>
+      <td>31.00</td>
+    </tr>
+    <tr>
+      <th>max</th>
+      <td>80.00</td>
+      <td>8.00</td>
+      <td>6.00</td>
+      <td>512.33</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div></div>
+<div class="celula" id="cel-5"><div class="cel-topo"><span class="cel-rotulo">Célula de código 5</span><button class="btn-copiar" type="button" data-alvo="cod-5">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-5"># Gráfico dos valores ausentes
+ausentes = (df.isna().mean() * 100).sort_values(ascending=False)
+ausentes = ausentes[ausentes &gt; 0]
+fig, ax = plt.subplots(figsize=(7, 2.8))
+ax.barh(ausentes.index[::-1], ausentes.values[::-1], color=&quot;#7f7f7f&quot;)
+for i, v in enumerate(ausentes.values[::-1]):
+    ax.text(v + 1, i, f&quot;{v:.1f}%&quot;, va=&quot;center&quot;)
+ax.set_xlim(0, 100); ax.set_xlabel(&quot;% de valores ausentes&quot;)
+ax.set_title(&quot;Quais colunas têm dados faltando?&quot;)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-01.png" alt="Gráfico 1: 2. Visão geral e qualidade dos dados"><figcaption>Figura 1. 2. Visão geral e qualidade dos dados</figcaption></figure></div></div>
+<section class="texto"><h3 id="os-dados-ausentes-são-aleatórios">Os dados ausentes são aleatórios?</h3>
+<p><code>Cabin</code> (77% ausente) e <code>Age</code> (20% ausente) são os casos importantes. Vamos checar se estar "ausente" se associa à classe ou à sobrevivência. Se sim, o mecanismo de ausência carrega informação (e não deve ser simplesmente ignorado).</p></section>
+<div class="celula" id="cel-6"><div class="cel-topo"><span class="cel-rotulo">Célula de código 6</span><button class="btn-copiar" type="button" data-alvo="cod-6">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-6">taxa_geral = df[&quot;Survived&quot;].mean()
+print(f&quot;Taxa geral de sobrevivência: {taxa_geral:.1%}\n&quot;)
+
+df[&quot;_cabine_conhecida&quot;] = df[&quot;Cabin&quot;].notna()
+df[&quot;_idade_conhecida&quot;] = df[&quot;Age&quot;].notna()
+
+print(&quot;→ Cabine conhecida × classe (% com cabine registrada):&quot;)
+print((df.groupby(&quot;Pclass&quot;)[&quot;_cabine_conhecida&quot;].mean() * 100).round(1).to_string(), &quot;\n&quot;)
+print(&quot;→ Taxa de sobrevivência segundo cabine registrada:&quot;)
+print(df.groupby(&quot;_cabine_conhecida&quot;)[&quot;Survived&quot;].mean().round(3).rename({False: &quot;sem cabine&quot;, True: &quot;com cabine&quot;}).to_string(), &quot;\n&quot;)
+print(&quot;→ Idade ausente × classe (% sem idade):&quot;)
+print(((1 - df.groupby(&quot;Pclass&quot;)[&quot;_idade_conhecida&quot;].mean()) * 100).round(1).to_string(), &quot;\n&quot;)
+print(&quot;→ Taxa de sobrevivência segundo idade registrada:&quot;)
+print(df.groupby(&quot;_idade_conhecida&quot;)[&quot;Survived&quot;].mean().round(3).rename({False: &quot;sem idade&quot;, True: &quot;com idade&quot;}).to_string())
+df = df.drop(columns=[&quot;_cabine_conhecida&quot;, &quot;_idade_conhecida&quot;])</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Taxa geral de sobrevivência: 38.4%
+
+→ Cabine conhecida × classe (% com cabine registrada):
+Pclass
+1    81.5
+2     8.7
+3     2.4 
+
+→ Taxa de sobrevivência segundo cabine registrada:
+_cabine_conhecida
+sem cabine    0.300
+com cabine    0.667 
+
+→ Idade ausente × classe (% sem idade):
+Pclass
+1    13.9
+2     6.0
+3    27.7 
+
+→ Taxa de sobrevivência segundo idade registrada:
+_idade_conhecida
+sem idade    0.294
+com idade    0.406
+</pre></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> a cabine só foi registrada para quem, em geral, estava na 1ª classe (e, entre os registrados, sobreviveu bem mais). As idades ausentes concentram-se na 3ª classe. Ou seja, <strong>a ausência não é aleatória</strong>: ela está ligada à classe social, o que justifica criar um indicador <code>HasCabin</code> e um indicador de idade ausente mais adiante.</p></section>
+<section class="texto"><h2 id="3-análise-univariada">3. Análise univariada</h2>
+<p>Olhamos uma variável de cada vez: como estão distribuídas as pessoas a bordo?</p></section>
+<div class="celula" id="cel-7"><div class="cel-topo"><span class="cel-rotulo">Célula de código 7</span><button class="btn-copiar" type="button" data-alvo="cod-7">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-7"># 3.1 Variáveis categóricas: quantas pessoas em cada categoria?
+fig, axes = plt.subplots(1, 4, figsize=(16, 3.6))
+rotulos_sobrev = df[&quot;Survived&quot;].map({0: &quot;Morreu&quot;, 1: &quot;Sobreviveu&quot;})
+sns.countplot(x=rotulos_sobrev, order=[&quot;Morreu&quot;, &quot;Sobreviveu&quot;], palette=[COR_MORREU, COR_SOBREVIVEU], ax=axes[0])
+axes[0].set_title(&quot;Desfecho&quot;); axes[0].set_xlabel(&quot;&quot;)
+sns.countplot(x=&quot;Sex&quot;, data=df, order=[&quot;male&quot;, &quot;female&quot;], color=&quot;#8e9aaf&quot;, ax=axes[1]); axes[1].set_title(&quot;Sexo&quot;)
+sns.countplot(x=&quot;Pclass&quot;, data=df, color=&quot;#8e9aaf&quot;, ax=axes[2]); axes[2].set_title(&quot;Classe&quot;)
+sns.countplot(x=&quot;Embarked&quot;, data=df, order=[&quot;S&quot;, &quot;C&quot;, &quot;Q&quot;], color=&quot;#8e9aaf&quot;, ax=axes[3]); axes[3].set_title(&quot;Porto de embarque&quot;)
+for ax in axes:
+    ax.set_ylabel(&quot;Passageiros&quot;)
+    for c in ax.containers:
+        ax.bar_label(c, padding=2, fontsize=9)
+plt.tight_layout(); plt.show()
+
+print(&quot;Proporções:&quot;)
+for col in [&quot;Survived&quot;, &quot;Sex&quot;, &quot;Pclass&quot;, &quot;Embarked&quot;]:
+    print(f&quot;  {col:9s}&quot;, (df[col].value_counts(normalize=True).round(3) * 100).to_dict())</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-02.png" alt="Gráfico 2: 3. Análise univariada"><figcaption>Figura 2. 3. Análise univariada</figcaption></figure><pre class="saida-txt">Proporções:
+  Survived  {0: 61.6, 1: 38.4}
+  Sex       {&#x27;male&#x27;: 64.8, &#x27;female&#x27;: 35.199999999999996}
+  Pclass    {3: 55.1, 1: 24.2, 2: 20.7}
+  Embarked  {&#x27;S&#x27;: 72.39999999999999, &#x27;C&#x27;: 18.9, &#x27;Q&#x27;: 8.7}
+</pre></div></div>
+<div class="celula" id="cel-8"><div class="cel-topo"><span class="cel-rotulo">Célula de código 8</span><button class="btn-copiar" type="button" data-alvo="cod-8">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-8"># 3.2 Idade: histograma + densidade e boxplot
+fig, axes = plt.subplots(1, 2, figsize=(13, 4), gridspec_kw={&quot;width_ratios&quot;: [2, 1]})
+sns.histplot(df[&quot;Age&quot;].dropna(), bins=32, kde=True, color=&quot;#8e9aaf&quot;, ax=axes[0])
+axes[0].axvline(df[&quot;Age&quot;].median(), color=&quot;black&quot;, ls=&quot;--&quot;, label=f&quot;mediana = {df[&#x27;Age&#x27;].median():.0f} anos&quot;)
+axes[0].set(title=&quot;Distribuição da idade (apenas idades conhecidas)&quot;, xlabel=&quot;Idade (anos)&quot;, ylabel=&quot;Passageiros&quot;); axes[0].legend()
+sns.boxplot(y=df[&quot;Age&quot;], color=&quot;#8e9aaf&quot;, ax=axes[1]); axes[1].set(title=&quot;Boxplot da idade&quot;, ylabel=&quot;Idade&quot;)
+plt.tight_layout(); plt.show()
+print(f&quot;Assimetria (skew) da idade: {df[&#x27;Age&#x27;].skew():.2f}  |  crianças (&lt;13): {(df[&#x27;Age&#x27;]&lt;13).sum()}  |  idosos (≥60): {(df[&#x27;Age&#x27;]&gt;=60).sum()}&quot;)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-03.png" alt="Gráfico 3: 3. Análise univariada"><figcaption>Figura 3. 3. Análise univariada</figcaption></figure><pre class="saida-txt">Assimetria (skew) da idade: 0.39  |  crianças (&lt;13): 69  |  idosos (≥60): 26
+</pre></div></div>
+<div class="celula" id="cel-9"><div class="cel-topo"><span class="cel-rotulo">Célula de código 9</span><button class="btn-copiar" type="button" data-alvo="cod-9">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-9"># 3.3 Tarifa: muito assimétrica → a escala logarítmica ajuda a enxergar
+fig, axes = plt.subplots(1, 3, figsize=(16, 3.8))
+sns.histplot(df[&quot;Fare&quot;], bins=50, color=&quot;#8e9aaf&quot;, ax=axes[0]); axes[0].set(title=&quot;Tarifa (escala original)&quot;, xlabel=&quot;£&quot;)
+sns.histplot(np.log1p(df[&quot;Fare&quot;]), bins=40, color=&quot;#8e9aaf&quot;, ax=axes[1]); axes[1].set(title=&quot;Tarifa (log(1 + £))&quot;, xlabel=&quot;log(1 + tarifa)&quot;)
+sns.boxplot(x=&quot;Pclass&quot;, y=&quot;Fare&quot;, data=df, color=&quot;#8e9aaf&quot;, ax=axes[2]); axes[2].set_yscale(&quot;log&quot;); axes[2].set(title=&quot;Tarifa por classe (eixo log)&quot;, ylabel=&quot;£ (log)&quot;)
+plt.tight_layout(); plt.show()
+print(f&quot;Assimetria da tarifa: {df[&#x27;Fare&#x27;].skew():.2f}  → após log1p: {np.log1p(df[&#x27;Fare&#x27;]).skew():.2f}&quot;)
+print(f&quot;Tarifas iguais a zero: {(df[&#x27;Fare&#x27;]==0).sum()} (tripulação/convidados? provavelmente casos especiais)&quot;)
+print(df.sort_values(&quot;Fare&quot;, ascending=False)[[&quot;Name&quot;, &quot;Pclass&quot;, &quot;Fare&quot;, &quot;Survived&quot;]].head(5).to_string(index=False))</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-04.png" alt="Gráfico 4: 3. Análise univariada"><figcaption>Figura 4. 3. Análise univariada</figcaption></figure><pre class="saida-txt">Assimetria da tarifa: 4.79  → após log1p: 0.39
+Tarifas iguais a zero: 15 (tripulação/convidados? provavelmente casos especiais)
+                              Name  Pclass     Fare  Survived
+            Lesurer, Mr. Gustave J       1 512.3292         1
+Cardeza, Mr. Thomas Drake Martinez       1 512.3292         1
+                  Ward, Miss. Anna       1 512.3292         1
+                 Fortune, Mr. Mark       1 263.0000         0
+        Fortune, Miss. Mabel Helen       1 263.0000         1
+</pre></div></div>
+<div class="celula" id="cel-10"><div class="cel-topo"><span class="cel-rotulo">Célula de código 10</span><button class="btn-copiar" type="button" data-alvo="cod-10">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-10"># 3.4 Família: SibSp e Parch
+fig, axes = plt.subplots(1, 2, figsize=(11, 3.4))
+sns.countplot(x=&quot;SibSp&quot;, data=df, color=&quot;#8e9aaf&quot;, ax=axes[0]); axes[0].set_title(&quot;Irmãos/cônjuges a bordo (SibSp)&quot;)
+sns.countplot(x=&quot;Parch&quot;, data=df, color=&quot;#8e9aaf&quot;, ax=axes[1]); axes[1].set_title(&quot;Pais/filhos a bordo (Parch)&quot;)
+for ax in axes:
+    for c in ax.containers: ax.bar_label(c, padding=2, fontsize=9)
+    ax.set_ylabel(&quot;Passageiros&quot;)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-05.png" alt="Gráfico 5: 3. Análise univariada"><figcaption>Figura 5. 3. Análise univariada</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> só ~38% sobreviveram; havia quase 2 homens para cada mulher; a maioria viajava na 3ª classe e embarcou em Southampton; a maior parte viajava sozinha ou em grupos pequenos. A tarifa é muito assimétrica (poucos pagaram fortunas), então usaremos <code>log(1 + tarifa)</code> nos modelos.</p></section>
+<section class="texto"><h2 id="4-análise-bivariada-e-multivariada">4. Análise bivariada e multivariada</h2>
+<p>Agora cruzamos cada variável com a sobrevivência. Para não superinterpretar diferenças em grupos pequenos, <strong>todas as taxas vêm com intervalo de confiança de 95%</strong> (método de Wilson). A linha tracejada é a taxa geral (38,4%).</p></section>
+<div class="celula" id="cel-11"><div class="cel-topo"><span class="cel-rotulo">Célula de código 11</span><button class="btn-copiar" type="button" data-alvo="cod-11">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-11"># --- Funções auxiliares reutilizadas ao longo do notebook ------------------
+def wilson(k, n, z=1.96):
+    &quot;&quot;&quot;Intervalo de confiança de Wilson (95%) para uma proporção k/n.&quot;&quot;&quot;
+    if n == 0:
+        return np.nan, np.nan
+    p = k / n
+    den = 1 + z**2 / n
+    centro = (p + z**2 / (2 * n)) / den
+    meia = z * np.sqrt(p * (1 - p) / n + z**2 / (4 * n**2)) / den
+    return centro - meia, centro + meia
+
+def taxa_sobrevivencia(dados, col):
+    &quot;&quot;&quot;Tabela com n, sobreviventes, taxa e IC95% por categoria de `col`.&quot;&quot;&quot;
+    g = dados.groupby(col, observed=True)[&quot;Survived&quot;].agg(n=&quot;size&quot;, sobreviventes=&quot;sum&quot;)
+    g[&quot;taxa&quot;] = g[&quot;sobreviventes&quot;] / g[&quot;n&quot;]
+    ic = g.apply(lambda r: wilson(r[&quot;sobreviventes&quot;], r[&quot;n&quot;]), axis=1, result_type=&quot;expand&quot;)
+    g[&quot;ic_inf&quot;], g[&quot;ic_sup&quot;] = ic[0], ic[1]
+    return g
+
+def plot_taxa(dados, col, ax, titulo=None, ordem=None, rot=0, cor=COR_SOBREVIVEU):
+    &quot;&quot;&quot;Barras da taxa de sobrevivência por categoria, com IC95% e tamanho do grupo.&quot;&quot;&quot;
+    g = taxa_sobrevivencia(dados, col)
+    if ordem is not None:
+        g = g.loc[ordem]
+    x = np.arange(len(g))
+    ax.bar(x, g[&quot;taxa&quot;], color=cor, alpha=0.85)
+    ax.errorbar(x, g[&quot;taxa&quot;], yerr=[g[&quot;taxa&quot;] - g[&quot;ic_inf&quot;], g[&quot;ic_sup&quot;] - g[&quot;taxa&quot;]],
+                fmt=&quot;none&quot;, ecolor=&quot;black&quot;, capsize=4, lw=1)
+    ax.set_xticks(x)
+    ax.set_xticklabels([f&quot;{i}\n(n={n})&quot; for i, n in zip(g.index, g[&quot;n&quot;])], rotation=rot)
+    for xi, t in zip(x, g[&quot;taxa&quot;]):
+        ax.text(xi, 0.03, f&quot;{t:.0%}&quot;, ha=&quot;center&quot;, color=&quot;white&quot;, fontweight=&quot;bold&quot;)
+    ax.axhline(dados[&quot;Survived&quot;].mean(), ls=&quot;--&quot;, color=&quot;gray&quot;, lw=1)
+    ax.set_ylim(0, 1.02); ax.set_ylabel(&quot;Taxa de sobrevivência&quot;); ax.set_xlabel(&quot;&quot;)
+    ax.set_title(titulo or col)
+    return g</code></pre></div>
+<section class="texto"><h3 id="41-os-três-fatores-clássicos-sexo-classe-e-porto">4.1 Os três fatores clássicos: sexo, classe e porto</h3></section>
+<div class="celula" id="cel-12"><div class="cel-topo"><span class="cel-rotulo">Célula de código 12</span><button class="btn-copiar" type="button" data-alvo="cod-12">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-12">fig, axes = plt.subplots(1, 3, figsize=(15, 4.2))
+g_sex = plot_taxa(df, &quot;Sex&quot;, axes[0], &quot;Por sexo&quot;, ordem=[&quot;female&quot;, &quot;male&quot;])
+g_cls = plot_taxa(df, &quot;Pclass&quot;, axes[1], &quot;Por classe&quot;)
+g_emb = plot_taxa(df, &quot;Embarked&quot;, axes[2], &quot;Por porto de embarque&quot;, ordem=[&quot;C&quot;, &quot;Q&quot;, &quot;S&quot;])
+plt.tight_layout(); plt.show()
+display(g_sex.round(3)); display(g_cls.round(3)); display(g_emb.round(3))</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-06.png" alt="Gráfico 6: 4.1 Os três fatores clássicos: sexo, classe e porto"><figcaption>Figura 6. 4.1 Os três fatores clássicos: sexo, classe e porto</figcaption></figure><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>n</th>
+      <th>sobreviventes</th>
+      <th>taxa</th>
+      <th>ic_inf</th>
+      <th>ic_sup</th>
+    </tr>
+    <tr>
+      <th>Sex</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>female</th>
+      <td>314</td>
+      <td>233</td>
+      <td>0.742</td>
+      <td>0.691</td>
+      <td>0.787</td>
+    </tr>
+    <tr>
+      <th>male</th>
+      <td>577</td>
+      <td>109</td>
+      <td>0.189</td>
+      <td>0.159</td>
+      <td>0.223</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>n</th>
+      <th>sobreviventes</th>
+      <th>taxa</th>
+      <th>ic_inf</th>
+      <th>ic_sup</th>
+    </tr>
+    <tr>
+      <th>Pclass</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>1</th>
+      <td>216</td>
+      <td>136</td>
+      <td>0.630</td>
+      <td>0.563</td>
+      <td>0.691</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>184</td>
+      <td>87</td>
+      <td>0.473</td>
+      <td>0.402</td>
+      <td>0.545</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>491</td>
+      <td>119</td>
+      <td>0.242</td>
+      <td>0.207</td>
+      <td>0.282</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>n</th>
+      <th>sobreviventes</th>
+      <th>taxa</th>
+      <th>ic_inf</th>
+      <th>ic_sup</th>
+    </tr>
+    <tr>
+      <th>Embarked</th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>C</th>
+      <td>168</td>
+      <td>93</td>
+      <td>0.554</td>
+      <td>0.478</td>
+      <td>0.627</td>
+    </tr>
+    <tr>
+      <th>Q</th>
+      <td>77</td>
+      <td>30</td>
+      <td>0.390</td>
+      <td>0.288</td>
+      <td>0.501</td>
+    </tr>
+    <tr>
+      <th>S</th>
+      <td>644</td>
+      <td>217</td>
+      <td>0.337</td>
+      <td>0.302</td>
+      <td>0.374</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> a diferença de sexo é enorme (~74% das mulheres contra ~19% dos homens). A taxa cai monotonicamente com a classe (63% → 47% → 24%). Cherbourg parece "melhor" que Southampton, mas isso pode ser um efeito de composição (quem embarcou onde). Testaremos isso adiante.</p></section>
+<div class="celula" id="cel-13"><div class="cel-topo"><span class="cel-rotulo">Célula de código 13</span><button class="btn-copiar" type="button" data-alvo="cod-13">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-13"># 4.2 Sexo × Classe: o cruzamento que mais explica o desfecho
+tab = df.pivot_table(index=&quot;Sex&quot;, columns=&quot;Pclass&quot;, values=&quot;Survived&quot;, aggfunc=&quot;mean&quot;)
+cont = df.pivot_table(index=&quot;Sex&quot;, columns=&quot;Pclass&quot;, values=&quot;Survived&quot;, aggfunc=&quot;size&quot;)
+fig, axes = plt.subplots(1, 2, figsize=(13, 3.8))
+sns.heatmap(tab.loc[[&quot;female&quot;, &quot;male&quot;]], annot=True, fmt=&quot;.0%&quot;, cmap=&quot;RdYlBu&quot;, vmin=0, vmax=1, cbar=False, ax=axes[0])
+axes[0].set(title=&quot;Taxa de sobrevivência (Sexo × Classe)&quot;, xlabel=&quot;Classe&quot;, ylabel=&quot;&quot;)
+sns.heatmap(cont.loc[[&quot;female&quot;, &quot;male&quot;]], annot=True, fmt=&quot;d&quot;, cmap=&quot;Greys&quot;, cbar=False, ax=axes[1])
+axes[1].set(title=&quot;Nº de passageiros em cada célula&quot;, xlabel=&quot;Classe&quot;, ylabel=&quot;&quot;)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-07.png" alt="Gráfico 7: 4.1 Os três fatores clássicos: sexo, classe e porto"><figcaption>Figura 7. 4.1 Os três fatores clássicos: sexo, classe e porto</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> entre as mulheres de 1ª e 2ª classe, 97% e 92% sobreviveram; já as <strong>mulheres de 3ª classe sobreviveram em apenas 50%</strong>. Os homens de 2ª e 3ª classe ficaram em 16% e 14%, e os de 1ª classe em 37%. Sexo e classe <strong>interagem</strong>: a vantagem de ser mulher foi enorme nas classes altas e bem menor na 3ª (testamos isso formalmente na Parte 7.6).</p></section>
+<section class="texto"><h3 id="43-idade">4.3 Idade</h3></section>
+<div class="celula" id="cel-14"><div class="cel-topo"><span class="cel-rotulo">Célula de código 14</span><button class="btn-copiar" type="button" data-alvo="cod-14">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-14">fig, axes = plt.subplots(1, 3, figsize=(17, 4.2))
+
+# (a) densidades de idade por desfecho
+for s, nome in [(0, &quot;Morreu&quot;), (1, &quot;Sobreviveu&quot;)]:
+    sns.kdeplot(df.loc[df[&quot;Survived&quot;] == s, &quot;Age&quot;].dropna(), fill=True, alpha=0.35, color=PALETA_SOBREV[s], label=nome, ax=axes[0])
+axes[0].set(title=&quot;Idade por desfecho&quot;, xlabel=&quot;Idade (anos)&quot;); axes[0].legend()
+
+# (b) faixas etárias
+faixas = [0, 5, 12, 18, 30, 45, 60, 81]
+rot_faixas = [&quot;0–4&quot;, &quot;5–12&quot;, &quot;13–17&quot;, &quot;18–29&quot;, &quot;30–44&quot;, &quot;45–59&quot;, &quot;60+&quot;]
+df[&quot;FaixaEtaria&quot;] = pd.cut(df[&quot;Age&quot;], bins=faixas, labels=rot_faixas, right=False)
+plot_taxa(df.dropna(subset=[&quot;FaixaEtaria&quot;]), &quot;FaixaEtaria&quot;, axes[1], &quot;Taxa por faixa etária&quot;, ordem=rot_faixas, rot=0)
+axes[1].tick_params(axis=&quot;x&quot;, labelsize=8)
+
+# (c) idade × sexo: a &quot;regra de mulheres e crianças&quot; aparece?
+for sexo, cor in [(&quot;female&quot;, &quot;#9b5de5&quot;), (&quot;male&quot;, &quot;#00a896&quot;)]:
+    d = df[df[&quot;Sex&quot;] == sexo].dropna(subset=[&quot;Age&quot;])
+    sns.regplot(x=&quot;Age&quot;, y=&quot;Survived&quot;, data=d, logistic=True, scatter_kws={&quot;alpha&quot;: 0.12, &quot;s&quot;: 12}, color=cor,
+                label={&quot;female&quot;: &quot;Mulheres&quot;, &quot;male&quot;: &quot;Homens&quot;}[sexo], ax=axes[2], ci=None, truncate=True)
+axes[2].set(title=&quot;P(sobreviver) × idade, por sexo&quot;, xlabel=&quot;Idade&quot;, ylabel=&quot;Prob. de sobreviver&quot;); axes[2].legend()
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-08.png" alt="Gráfico 8: 4.3 Idade"><figcaption>Figura 8. 4.3 Idade</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> crianças de 0–4 anos tiveram a maior taxa de sobrevivência (68%); adultos de 18–29 anos ficaram em 35% e os de 60+ em 27% (n = 26, intervalo largo). As curvas logísticas mostram inclinações <strong>opostas</strong> por sexo: entre os homens, quanto mais velho, menor a chance (coeficiente negativo, p ≈ 0,01); entre as mulheres a curva é plana ou levemente crescente (p ≈ 0,06). Isso é coerente com "mulheres e crianças primeiro", e não com uma simples queda geral com a idade.</p></section>
+<div class="celula" id="cel-15"><div class="cel-topo"><span class="cel-rotulo">Célula de código 15</span><button class="btn-copiar" type="button" data-alvo="cod-15">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-15"># 4.4 &quot;Mulheres e crianças primeiro?&quot;: criamos uma categoria demográfica e olhamos por classe
+def categoria_demografica(r):
+    if (pd.notna(r[&quot;Age&quot;]) and r[&quot;Age&quot;] &lt; 13) or (pd.isna(r[&quot;Age&quot;]) and &quot;Master.&quot; in r[&quot;Name&quot;]):
+        return &quot;Criança (&lt;13)&quot;
+    return &quot;Mulher adulta&quot; if r[&quot;Sex&quot;] == &quot;female&quot; else &quot;Homem adulto&quot;
+
+df[&quot;CatDemog&quot;] = df.apply(categoria_demografica, axis=1)
+ordem_cat = [&quot;Mulher adulta&quot;, &quot;Criança (&lt;13)&quot;, &quot;Homem adulto&quot;]
+tab_cd = df.pivot_table(index=&quot;CatDemog&quot;, columns=&quot;Pclass&quot;, values=&quot;Survived&quot;, aggfunc=[&quot;mean&quot;, &quot;size&quot;]).loc[ordem_cat]
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 4))
+plot_taxa(df, &quot;CatDemog&quot;, axes[0], &quot;Taxa geral por categoria demográfica&quot;, ordem=ordem_cat)
+sns.pointplot(data=df, x=&quot;Pclass&quot;, y=&quot;Survived&quot;, hue=&quot;CatDemog&quot;, hue_order=ordem_cat,
+              palette=[&quot;#9b5de5&quot;, &quot;#f9a03f&quot;, &quot;#00a896&quot;], errorbar=(&quot;ci&quot;, 95), dodge=0.25, ax=axes[1])
+axes[1].set(title=&quot;Taxa por classe e categoria (IC95%)&quot;, xlabel=&quot;Classe&quot;, ylabel=&quot;Taxa de sobrevivência&quot;, ylim=(0, 1.05))
+axes[1].legend(title=&quot;&quot;)
+plt.tight_layout(); plt.show()
+display((tab_cd[&quot;mean&quot;].round(2)).rename_axis(None).add_prefix(&quot;Classe &quot;))
+display(tab_cd[&quot;size&quot;].rename_axis(None).add_prefix(&quot;n, classe &quot;))</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-09.png" alt="Gráfico 9: 4.3 Idade"><figcaption>Figura 9. 4.3 Idade</figcaption></figure><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Pclass</th>
+      <th>Classe 1</th>
+      <th>Classe 2</th>
+      <th>Classe 3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Mulher adulta</th>
+      <td>0.98</td>
+      <td>0.91</td>
+      <td>0.50</td>
+    </tr>
+    <tr>
+      <th>Criança (&lt;13)</th>
+      <td>0.75</td>
+      <td>1.00</td>
+      <td>0.42</td>
+    </tr>
+    <tr>
+      <th>Homem adulto</th>
+      <td>0.35</td>
+      <td>0.08</td>
+      <td>0.11</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Pclass</th>
+      <th>n, classe 1</th>
+      <th>n, classe 2</th>
+      <th>n, classe 3</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Mulher adulta</th>
+      <td>93</td>
+      <td>68</td>
+      <td>121</td>
+    </tr>
+    <tr>
+      <th>Criança (&lt;13)</th>
+      <td>4</td>
+      <td>17</td>
+      <td>52</td>
+    </tr>
+    <tr>
+      <th>Homem adulto</th>
+      <td>119</td>
+      <td>99</td>
+      <td>318</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> mulheres adultas sobreviveram em 76%, crianças (&lt;13) em 58% e homens adultos em 16%. Mas a proteção variou por classe: mulheres adultas de 1ª e 2ª classe tiveram 98% e 91%, contra 50% na 3ª; e <strong>crianças de 3ª classe sobreviveram em apenas 42%</strong> (n = 52), enquanto as de 2ª classe sobreviveram todas (n = 17). "Mulheres e crianças primeiro" valeu plenamente nas classes altas e muito menos na 3ª. (Atenção: as células de crianças em 1ª classe têm só 4 pessoas.)</p></section>
+<section class="texto"><h3 id="45-tarifa">4.5 Tarifa</h3>
+<p>A tarifa e a classe estão muito ligadas. A pergunta interessante é: <strong>a tarifa tem efeito próprio, depois de descontada a classe?</strong></p></section>
+<div class="celula" id="cel-16"><div class="cel-topo"><span class="cel-rotulo">Célula de código 16</span><button class="btn-copiar" type="button" data-alvo="cod-16">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-16">fig, axes = plt.subplots(1, 3, figsize=(17, 4.2))
+
+# (a) tarifa por desfecho (log)
+sns.boxplot(x=df[&quot;Survived&quot;].map({0: &quot;Morreu&quot;, 1: &quot;Sobreviveu&quot;}), y=np.log1p(df[&quot;Fare&quot;]),
+            palette=[COR_MORREU, COR_SOBREVIVEU], order=[&quot;Morreu&quot;, &quot;Sobreviveu&quot;], ax=axes[0])
+axes[0].set(title=&quot;log(1+tarifa) por desfecho&quot;, xlabel=&quot;&quot;, ylabel=&quot;log(1 + £)&quot;)
+
+# (b) taxa por quintil de tarifa (usa todos os passageiros)
+df[&quot;QuintilTarifa&quot;] = pd.qcut(df[&quot;Fare&quot;], 5, labels=[&quot;Q1\n(mais baixa)&quot;, &quot;Q2&quot;, &quot;Q3&quot;, &quot;Q4&quot;, &quot;Q5\n(mais alta)&quot;], duplicates=&quot;drop&quot;)
+plot_taxa(df, &quot;QuintilTarifa&quot;, axes[1], &quot;Taxa por quintil de tarifa&quot;)
+axes[1].tick_params(axis=&quot;x&quot;, labelsize=8)
+
+# (c) dentro de cada classe, a tarifa ainda importa? (tercis DENTRO da classe)
+df[&quot;TercilTarifaNaClasse&quot;] = df.groupby(&quot;Pclass&quot;)[&quot;Fare&quot;].transform(lambda s: pd.qcut(s, 3, labels=[&quot;baixa&quot;, &quot;média&quot;, &quot;alta&quot;], duplicates=&quot;drop&quot;))
+sns.pointplot(data=df, x=&quot;Pclass&quot;, y=&quot;Survived&quot;, hue=&quot;TercilTarifaNaClasse&quot;, hue_order=[&quot;baixa&quot;, &quot;média&quot;, &quot;alta&quot;],
+              palette=&quot;viridis&quot;, dodge=0.3, errorbar=(&quot;ci&quot;, 95), ax=axes[2])
+axes[2].set(title=&quot;Tarifa dentro da classe&quot;, xlabel=&quot;Classe&quot;, ylabel=&quot;Taxa de sobrevivência&quot;, ylim=(0, 1.05))
+axes[2].legend(title=&quot;Tarifa (tercil\nna classe)&quot;, fontsize=8)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-10.png" alt="Gráfico 10: 4.5 Tarifa"><figcaption>Figura 10. 4.5 Tarifa</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> misturando todos, a taxa sobe de ~22% (quintil mais baixo) a 64% (mais alto). Dentro das classes, o gradiente <strong>persiste na 1ª classe</strong> (44% → 67% → 77% nos tercis de tarifa) e na 2ª (35% → 57% → 59%), mas na 3ª é pequeno e irregular (23%, 18%, 32%). Parte do "efeito da tarifa" é efeito da classe; a parte restante dentro da 1ª/2ª classe provavelmente reflete localização da cabine e tamanho do grupo, o que veremos nos modelos multivariados.</p></section>
+<section class="texto"><h3 id="46-porto-de-embarque-efeito-real-ou-confusão">4.6 Porto de embarque: efeito real ou confusão?</h3>
+<p>Se os passageiros de Cherbourg eram mais ricos, o porto estaria apenas "herdando" o efeito da classe.</p></section>
+<div class="celula" id="cel-17"><div class="cel-topo"><span class="cel-rotulo">Célula de código 17</span><button class="btn-copiar" type="button" data-alvo="cod-17">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-17">fig, axes = plt.subplots(1, 3, figsize=(17, 4.2))
+
+# (a) composição de classe em cada porto
+comp = pd.crosstab(df[&quot;Embarked&quot;], df[&quot;Pclass&quot;], normalize=&quot;index&quot;).loc[[&quot;C&quot;, &quot;Q&quot;, &quot;S&quot;]]
+comp.plot(kind=&quot;bar&quot;, stacked=True, colormap=&quot;Blues_r&quot;, ax=axes[0], edgecolor=&quot;white&quot;, rot=0)
+axes[0].set(title=&quot;Composição de classe por porto&quot;, xlabel=&quot;Porto&quot;, ylabel=&quot;Proporção&quot;); axes[0].legend(title=&quot;Classe&quot;, fontsize=8)
+
+# (b) composição de sexo em cada porto
+comp_s = pd.crosstab(df[&quot;Embarked&quot;], df[&quot;Sex&quot;], normalize=&quot;index&quot;).loc[[&quot;C&quot;, &quot;Q&quot;, &quot;S&quot;]]
+comp_s.plot(kind=&quot;bar&quot;, stacked=True, color=[&quot;#9b5de5&quot;, &quot;#00a896&quot;], ax=axes[1], edgecolor=&quot;white&quot;, rot=0)
+axes[1].set(title=&quot;Composição por sexo em cada porto&quot;, xlabel=&quot;Porto&quot;, ylabel=&quot;Proporção&quot;); axes[1].legend(title=&quot;&quot;, fontsize=8)
+
+# (c) taxa por porto, SEPARADA por classe
+sns.pointplot(data=df, x=&quot;Embarked&quot;, y=&quot;Survived&quot;, hue=&quot;Pclass&quot;, order=[&quot;C&quot;, &quot;Q&quot;, &quot;S&quot;], palette=&quot;viridis&quot;,
+              dodge=0.3, errorbar=(&quot;ci&quot;, 95), ax=axes[2])
+axes[2].set(title=&quot;Taxa por porto, controlando a classe&quot;, xlabel=&quot;Porto&quot;, ylabel=&quot;Taxa de sobrevivência&quot;, ylim=(0, 1.05))
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-11.png" alt="Gráfico 11: 4.6 Porto de embarque: efeito real ou confusão?"><figcaption>Figura 11. 4.6 Porto de embarque: efeito real ou confusão?</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> 51% dos embarcados em Cherbourg eram de 1ª classe (contra 20% em Southampton), e 94% dos de Queenstown eram de 3ª. Ao separar por classe, a vantagem de Cherbourg <strong>encolhe, mas não desaparece</strong> (1ª classe: 69% vs 58%; 3ª classe: 38% vs 19%). Os grupos de Queenstown em 1ª/2ª classe têm só 2 e 3 pessoas, então esses pontos do gráfico são pouco informativos. Quantificamos a parte que sobra na Parte 7.5.</p></section>
+<section class="texto"><h3 id="47-tamanho-da-família">4.7 Tamanho da família</h3></section>
+<div class="celula" id="cel-18"><div class="cel-topo"><span class="cel-rotulo">Célula de código 18</span><button class="btn-copiar" type="button" data-alvo="cod-18">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-18">df[&quot;FamilySize&quot;] = df[&quot;SibSp&quot;] + df[&quot;Parch&quot;] + 1        # +1 = o próprio passageiro
+fig, axes = plt.subplots(1, 3, figsize=(17, 4))
+plot_taxa(df, &quot;SibSp&quot;, axes[0], &quot;Por irmãos/cônjuges (SibSp)&quot;)
+plot_taxa(df, &quot;Parch&quot;, axes[1], &quot;Por pais/filhos (Parch)&quot;)
+plot_taxa(df, &quot;FamilySize&quot;, axes[2], &quot;Por tamanho da família (SibSp + Parch + 1)&quot;)
+for ax in axes: ax.tick_params(axis=&quot;x&quot;, labelsize=8)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-12.png" alt="Gráfico 12: 4.7 Tamanho da família"><figcaption>Figura 12. 4.7 Tamanho da família</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> há um padrão em "U invertido": quem viajava <strong>sozinho</strong> sobreviveu em 30%, famílias de 2–4 pessoas em 55–72%, e famílias <strong>grandes (≥5)</strong> em apenas 0–33% (agrupadas, 16%). Parte disso se deve à classe (famílias grandes concentram-se na 3ª), mas o modelo ajustado da Parte 7.4 mostra que a penalidade das famílias grandes permanece. Os grupos grandes são poucos, então os intervalos são largos.</p></section>
+<section class="texto"><h2 id="5-engenharia-de-atributos">5. Engenharia de atributos</h2>
+<p>Criamos variáveis novas a partir das existentes, extraindo informação que está "escondida" em texto e em padrões de preenchimento.</p>
+<table>
+<thead>
+<tr>
+<th>Nova variável</th>
+<th>Como é construída</th>
+<th>Por que pode importar</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Title</code> / <code>Title_grp</code></td>
+<td>título no nome (Mr., Mrs., Miss., Master., ...)</td>
+<td>resume sexo, idade e estado civil</td>
+</tr>
+<tr>
+<td><code>FamilySize</code>, <code>IsAlone</code></td>
+<td>SibSp + Parch + 1; 1 se sozinho</td>
+<td>proteção ou entrave em uma evacuação</td>
+</tr>
+<tr>
+<td><code>HasCabin</code>, <code>Deck</code></td>
+<td>cabine registrada; 1ª letra da cabine</td>
+<td>proxy de posição no navio e de status</td>
+</tr>
+<tr>
+<td><code>TicketGroupSize</code></td>
+<td>nº de passageiros com o mesmo bilhete</td>
+<td>inclui amigos e criados, não só parentes</td>
+</tr>
+<tr>
+<td><code>FarePerPerson</code></td>
+<td>tarifa ÷ tamanho do grupo de bilhete</td>
+<td>o bilhete cobra o grupo todo</td>
+</tr>
+<tr>
+<td><code>Fare_log</code></td>
+<td>log(1 + tarifa)</td>
+<td>reduz a assimetria</td>
+</tr>
+</tbody>
+</table></section>
+<div class="celula" id="cel-19"><div class="cel-topo"><span class="cel-rotulo">Célula de código 19</span><button class="btn-copiar" type="button" data-alvo="cod-19">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-19"># --- Título ----------------------------------------------------------------
+# Os nomes seguem o padrão &quot;Sobrenome, Título. Nomes&quot;: pegamos o que está entre a vírgula e o ponto
+df[&quot;Title&quot;] = df[&quot;Name&quot;].str.extract(r&quot;,\s*([^\.]+)\.&quot;, expand=False).str.strip()
+print(&quot;Títulos encontrados:\n&quot;, df[&quot;Title&quot;].value_counts().to_dict())
+
+# Agrupamos os raros e unificamos variantes (Mlle→Miss, Mme→Mrs, Ms→Miss)
+mapa_titulos = {&quot;Mlle&quot;: &quot;Miss&quot;, &quot;Ms&quot;: &quot;Miss&quot;, &quot;Mme&quot;: &quot;Mrs&quot;,
+                &quot;Mr&quot;: &quot;Mr&quot;, &quot;Mrs&quot;: &quot;Mrs&quot;, &quot;Miss&quot;: &quot;Miss&quot;, &quot;Master&quot;: &quot;Master&quot;}
+df[&quot;Title_grp&quot;] = df[&quot;Title&quot;].map(mapa_titulos).fillna(&quot;Raro&quot;)
+
+# --- Família ---------------------------------------------------------------
+df[&quot;IsAlone&quot;] = (df[&quot;FamilySize&quot;] == 1).astype(int)
+df[&quot;FamilyCat&quot;] = pd.cut(df[&quot;FamilySize&quot;], [0, 1, 4, 20], labels=[&quot;Sozinho&quot;, &quot;Pequena (2–4)&quot;, &quot;Grande (5+)&quot;])
+
+# --- Cabine e convés -----------------------------------------------------------
+df[&quot;HasCabin&quot;] = df[&quot;Cabin&quot;].notna().astype(int)
+df[&quot;Deck&quot;] = df[&quot;Cabin&quot;].str[0].fillna(&quot;Desconhecido&quot;)
+
+# --- Bilhete: tamanho do grupo que compartilha o mesmo número ----------------------
+# (contagem feita nos 891 passageiros; é uma propriedade do bilhete, não usa o desfecho)
+df[&quot;TicketGroupSize&quot;] = df.groupby(&quot;Ticket&quot;)[&quot;Ticket&quot;].transform(&quot;count&quot;)
+df[&quot;FarePerPerson&quot;] = df[&quot;Fare&quot;] / df[&quot;TicketGroupSize&quot;]
+df[&quot;Fare_log&quot;] = np.log1p(df[&quot;Fare&quot;])
+
+# --- Sobrenome (útil p/ a análise de famílias) -----------------------------------
+df[&quot;Surname&quot;] = df[&quot;Name&quot;].str.split(&quot;,&quot;).str[0]
+
+df[[&quot;Name&quot;, &quot;Title&quot;, &quot;Title_grp&quot;, &quot;FamilySize&quot;, &quot;IsAlone&quot;, &quot;HasCabin&quot;, &quot;Deck&quot;, &quot;TicketGroupSize&quot;, &quot;FarePerPerson&quot;]].head(6)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Títulos encontrados:
+ {&#x27;Mr&#x27;: 517, &#x27;Miss&#x27;: 182, &#x27;Mrs&#x27;: 125, &#x27;Master&#x27;: 40, &#x27;Dr&#x27;: 7, &#x27;Rev&#x27;: 6, &#x27;Major&#x27;: 2, &#x27;Mlle&#x27;: 2, &#x27;Col&#x27;: 2, &#x27;Don&#x27;: 1, &#x27;Mme&#x27;: 1, &#x27;Ms&#x27;: 1, &#x27;Lady&#x27;: 1, &#x27;Sir&#x27;: 1, &#x27;Capt&#x27;: 1, &#x27;the Countess&#x27;: 1, &#x27;Jonkheer&#x27;: 1}
+</pre><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Name</th>
+      <th>Title</th>
+      <th>Title_grp</th>
+      <th>FamilySize</th>
+      <th>IsAlone</th>
+      <th>HasCabin</th>
+      <th>Deck</th>
+      <th>TicketGroupSize</th>
+      <th>FarePerPerson</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Braund, Mr. Owen Harris</td>
+      <td>Mr</td>
+      <td>Mr</td>
+      <td>2</td>
+      <td>0</td>
+      <td>0</td>
+      <td>Desconhecido</td>
+      <td>1</td>
+      <td>7.2500</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Cumings, Mrs. John Bradley (Florence Briggs Th...</td>
+      <td>Mrs</td>
+      <td>Mrs</td>
+      <td>2</td>
+      <td>0</td>
+      <td>1</td>
+      <td>C</td>
+      <td>1</td>
+      <td>71.2833</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Heikkinen, Miss. Laina</td>
+      <td>Miss</td>
+      <td>Miss</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>Desconhecido</td>
+      <td>1</td>
+      <td>7.9250</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Futrelle, Mrs. Jacques Heath (Lily May Peel)</td>
+      <td>Mrs</td>
+      <td>Mrs</td>
+      <td>2</td>
+      <td>0</td>
+      <td>1</td>
+      <td>C</td>
+      <td>2</td>
+      <td>26.5500</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Allen, Mr. William Henry</td>
+      <td>Mr</td>
+      <td>Mr</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>Desconhecido</td>
+      <td>1</td>
+      <td>8.0500</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>Moran, Mr. James</td>
+      <td>Mr</td>
+      <td>Mr</td>
+      <td>1</td>
+      <td>1</td>
+      <td>0</td>
+      <td>Desconhecido</td>
+      <td>1</td>
+      <td>8.4583</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div></div>
+<div class="celula" id="cel-20"><div class="cel-topo"><span class="cel-rotulo">Célula de código 20</span><button class="btn-copiar" type="button" data-alvo="cod-20">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-20">fig, axes = plt.subplots(2, 3, figsize=(17, 8.5))
+ordem_t = [&quot;Mrs&quot;, &quot;Miss&quot;, &quot;Master&quot;, &quot;Raro&quot;, &quot;Mr&quot;]
+plot_taxa(df, &quot;Title_grp&quot;, axes[0, 0], &quot;Por título&quot;, ordem=ordem_t)
+plot_taxa(df, &quot;FamilyCat&quot;, axes[0, 1], &quot;Por categoria de família&quot;)
+plot_taxa(df, &quot;HasCabin&quot;, axes[0, 2], &quot;Cabine registrada? (0 = não, 1 = sim)&quot;)
+ordem_deck = [&quot;A&quot;, &quot;B&quot;, &quot;C&quot;, &quot;D&quot;, &quot;E&quot;, &quot;F&quot;, &quot;G&quot;, &quot;Desconhecido&quot;]
+d_deck = df[df[&quot;Deck&quot;].isin(ordem_deck)]
+plot_taxa(d_deck, &quot;Deck&quot;, axes[1, 0], &quot;Por convés (T omitido)&quot;, ordem=[o for o in ordem_deck if o in d_deck[&quot;Deck&quot;].unique()])
+axes[1, 0].tick_params(axis=&quot;x&quot;, labelsize=7)
+plot_taxa(df.assign(TG=df[&quot;TicketGroupSize&quot;].clip(upper=5).astype(int).astype(str).replace(&quot;5&quot;, &quot;5+&quot;)), &quot;TG&quot;, axes[1, 1],
+          &quot;Por nº de pessoas no mesmo bilhete&quot;, ordem=[&quot;1&quot;, &quot;2&quot;, &quot;3&quot;, &quot;4&quot;, &quot;5+&quot;])
+sns.scatterplot(data=df, x=&quot;FarePerPerson&quot;, y=&quot;Fare&quot;, hue=df[&quot;Survived&quot;].map({0: &quot;Morreu&quot;, 1: &quot;Sobreviveu&quot;}),
+                palette={&quot;Morreu&quot;: COR_MORREU, &quot;Sobreviveu&quot;: COR_SOBREVIVEU}, alpha=0.5, s=18, ax=axes[1, 2])
+axes[1, 2].set(title=&quot;Tarifa do bilhete × tarifa por pessoa&quot;, xscale=&quot;log&quot;, yscale=&quot;log&quot;, xlabel=&quot;Tarifa por pessoa (£, log)&quot;, ylabel=&quot;Tarifa do bilhete (£, log)&quot;)
+axes[1, 2].legend(title=&quot;&quot;, fontsize=8)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-13.png" alt="Gráfico 13: 5. Engenharia de atributos"><figcaption>Figura 13. 5. Engenharia de atributos</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> o <strong>título</strong> é um excelente resumo: "Mrs" (79%), "Miss" (70%) e "Master" (meninos, 58%) sobrevivem muito mais que "Mr" (16%). Ter cabine registrada associa-se a 67% de sobrevivência contra 30% sem registro (convés B, D e E: ~75%). Grupos de bilhete de 2–4 pessoas se saem melhor (50–70%) que viajantes sozinhos (30%), enquanto grupos de 5 ou mais pessoas tiveram apenas 10% (n = 49).</p></section>
+<section class="texto"><h3 id="51-há-destino-compartilhado-dentro-de-famílias-e-grupos-de-b">5.1 Há "destino compartilhado" dentro de famílias e grupos de bilhete?</h3>
+<p>Se pessoas que viajam juntas tendem a ter o mesmo desfecho, isso é evidência de que a evacuação foi <em>coletiva</em>. Testamos com um <strong>teste de permutação</strong>: comparamos a concordância observada de desfechos dentro dos grupos com a que ocorreria se os desfechos fossem embaralhados ao acaso.</p></section>
+<div class="celula" id="cel-21"><div class="cel-topo"><span class="cel-rotulo">Célula de código 21</span><button class="btn-copiar" type="button" data-alvo="cod-21">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-21">def concordancia_media(survived, grupos):
+    &quot;&quot;&quot;Para cada grupo (&gt;=2 pessoas), fração de pares com o mesmo desfecho; devolve a média ponderada.&quot;&quot;&quot;
+    pares_iguais, pares_total = 0, 0
+    for idx in grupos:
+        s = survived[idx]
+        k, n = s.sum(), len(s)
+        total = n * (n - 1) / 2
+        iguais = k * (k - 1) / 2 + (n - k) * (n - k - 1) / 2
+        pares_iguais += iguais; pares_total += total
+    return pares_iguais / pares_total
+
+rng = np.random.default_rng(SEED)
+y_arr = df[&quot;Survived&quot;].to_numpy()
+resultados = {}
+for nome, col in [(&quot;Mesmo bilhete&quot;, &quot;Ticket&quot;), (&quot;Mesmo sobrenome + bilhete&quot;, None)]:
+    chave = df[&quot;Ticket&quot;] if col else df[&quot;Surname&quot;] + &quot;|&quot; + df[&quot;Ticket&quot;]
+    grupos = [np.array(ix) for ix in chave.groupby(chave).indices.values() if len(ix) &gt;= 2]
+    obs = concordancia_media(y_arr, grupos)
+    nulo = np.array([concordancia_media(rng.permutation(y_arr), grupos) for _ in range(2000)])
+    p = (np.sum(nulo &gt;= obs) + 1) / (len(nulo) + 1)
+    resultados[nome] = (len(grupos), obs, nulo.mean(), p)
+
+print(f&quot;{&#x27;Agrupamento&#x27;:28s}{&#x27;grupos&#x27;:&gt;8s}{&#x27;observado&#x27;:&gt;11s}{&#x27;esperado ao acaso&#x27;:&gt;20s}{&#x27;p (perm.)&#x27;:&gt;11s}&quot;)
+for k, (ng, o, e, p) in resultados.items():
+    print(f&quot;{k:28s}{ng:8d}{o:11.3f}{e:20.3f}{p:11.4f}&quot;)
+print(&quot;\nInterpretação: concordância observada &gt;&gt; esperada ⇒ quem viajava junto tendia a compartilhar o destino.&quot;)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Agrupamento                   grupos  observado   esperado ao acaso  p (perm.)
+Mesmo bilhete                    134      0.761               0.525     0.0005
+Mesmo sobrenome + bilhete         99      0.783               0.526     0.0005
+
+Interpretação: concordância observada &gt;&gt; esperada ⇒ quem viajava junto tendia a compartilhar o destino.
+</pre></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> em ~76% dos pares que compartilham bilhete o desfecho foi o mesmo, contra ~52,5% esperado ao acaso (p &lt; 0,001). Cuidado: parte dessa concordância é "herdada", porque quem viaja junto também tem o mesmo sexo/classe/idade aproximada, e não prova por si só um mecanismo de decisão coletiva. Mesmo assim, é por isso que <code>TicketGroupSize</code> ajuda os modelos.</p></section>
+<section class="texto"><h2 id="6-tratamento-das-idades-ausentes-20-dos-passageiros">6. Tratamento das idades ausentes (20% dos passageiros)</h2>
+<p>Uma solução comum é preencher a idade pela média ou mediana geral, ou pela média de cada grupo (Classe × Sexo). Aqui usamos a <strong>mediana por Título × Classe</strong>, que é mais robusta a <em>outliers</em> e mais informativa (o título "Master" identifica meninos; "Miss" separa muitas vezes moças de meninas). Também criamos o indicador <code>Age_ausente</code>, já que a ausência não é aleatória (Parte 2).</p>
+<blockquote>
+<p>⚠️ Na parte de <strong>modelagem</strong>, a imputação será refeita <em>dentro</em> do pipeline, aprendida só no conjunto de treino, para evitar vazamento de dados (<em>data leakage</em>). Aqui a usamos apenas para análise exploratória e inferência.</p>
+</blockquote></section>
+<div class="celula" id="cel-22"><div class="cel-topo"><span class="cel-rotulo">Célula de código 22</span><button class="btn-copiar" type="button" data-alvo="cod-22">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-22"># Mediana de idade por Título × Classe (grupos pequenos usam a mediana do título)
+med_grupo = df.groupby([&quot;Title_grp&quot;, &quot;Pclass&quot;])[&quot;Age&quot;].median()
+print(&quot;Mediana de idade por Título × Classe:&quot;)
+display(med_grupo.unstack().round(1))
+
+def imputar_idade(linha):
+    if pd.notna(linha[&quot;Age&quot;]):
+        return linha[&quot;Age&quot;]
+    v = med_grupo.get((linha[&quot;Title_grp&quot;], linha[&quot;Pclass&quot;]), np.nan)
+    return v if pd.notna(v) else df.loc[df[&quot;Title_grp&quot;] == linha[&quot;Title_grp&quot;], &quot;Age&quot;].median()
+
+df[&quot;Age_ausente&quot;] = df[&quot;Age&quot;].isna().astype(int)
+df[&quot;Age_imp&quot;] = df.apply(imputar_idade, axis=1)
+
+fig, ax = plt.subplots(figsize=(9, 3.6))
+sns.kdeplot(df[&quot;Age&quot;].dropna(), label=&quot;Original (714 conhecidas)&quot;, fill=True, alpha=0.3, color=&quot;gray&quot;, ax=ax)
+sns.kdeplot(df[&quot;Age_imp&quot;], label=&quot;Após imputação (891)&quot;, color=&quot;black&quot;, ax=ax)
+ax.set(title=&quot;A imputação preserva a forma da distribuição de idades?&quot;, xlabel=&quot;Idade&quot;); ax.legend()
+plt.tight_layout(); plt.show()
+print(f&quot;Média antes: {df[&#x27;Age&#x27;].mean():.2f} | depois: {df[&#x27;Age_imp&#x27;].mean():.2f}   |   &quot;
+      f&quot;Desvio-padrão antes: {df[&#x27;Age&#x27;].std():.2f} | depois: {df[&#x27;Age_imp&#x27;].std():.2f}&quot;)
+print(f&quot;Nenhum NaN restante em Age_imp? {df[&#x27;Age_imp&#x27;].isna().sum() == 0}&quot;)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Mediana de idade por Título × Classe:
+</pre><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th>Pclass</th>
+      <th>1</th>
+      <th>2</th>
+      <th>3</th>
+    </tr>
+    <tr>
+      <th>Title_grp</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Master</th>
+      <td>4.0</td>
+      <td>1.0</td>
+      <td>4.0</td>
+    </tr>
+    <tr>
+      <th>Miss</th>
+      <td>30.0</td>
+      <td>24.0</td>
+      <td>18.0</td>
+    </tr>
+    <tr>
+      <th>Mr</th>
+      <td>40.0</td>
+      <td>31.0</td>
+      <td>26.0</td>
+    </tr>
+    <tr>
+      <th>Mrs</th>
+      <td>40.0</td>
+      <td>32.0</td>
+      <td>31.0</td>
+    </tr>
+    <tr>
+      <th>Raro</th>
+      <td>48.5</td>
+      <td>46.5</td>
+      <td>NaN</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><figure><img loading="lazy" src="img/fig-14.png" alt="Gráfico 14: 6. Tratamento das idades ausentes (20% dos passageiros)"><figcaption>Figura 14. 6. Tratamento das idades ausentes (20% dos passageiros)</figcaption></figure><pre class="saida-txt">Média antes: 29.70 | depois: 29.14   |   Desvio-padrão antes: 14.53 | depois: 13.49
+Nenhum NaN restante em Age_imp? True
+</pre></div></div>
+<section class="texto"><h2 id="7-inferência-estatística">7. Inferência estatística</h2>
+<p>Até aqui descrevemos. Agora perguntamos: <strong>as diferenças são maiores do que o acaso explicaria? E qual é o efeito de cada fator <em>mantendo os outros constantes</em>?</strong></p>
+<blockquote>
+<p>📝 <strong>Nota metodológica.</strong> Um erro comum é aplicar um <em>teste t</em> ou uma <em>ANOVA</em> sobre a variável binária <code>Survived</code>. Isso funciona como aproximação (com n grande), mas o método adequado para comparar proporções entre categorias é o <strong>teste qui-quadrado</strong>, acompanhado de uma medida de tamanho de efeito (<strong>V de Cramér</strong>). Para variáveis contínuas assimétricas (idade, tarifa) usamos o <strong>teste de Mann-Whitney</strong>, que não supõe normalidade.</p>
+</blockquote></section>
+<section class="texto"><h3 id="71-associação-das-variáveis-categóricas-com-a-sobrevivência">7.1 Associação das variáveis categóricas com a sobrevivência</h3>
+<p>O <em>p-valor</em> diz se a associação é improvável sob independência. O <strong>V de Cramér</strong> (0 a 1) diz o <strong>quão forte</strong> ela é, o que importa mais em amostras grandes, onde quase tudo é "significativo".</p></section>
+<div class="celula" id="cel-23"><div class="cel-topo"><span class="cel-rotulo">Célula de código 23</span><button class="btn-copiar" type="button" data-alvo="cod-23">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-23">def cramers_v(x, y):
+    ct = pd.crosstab(x, y)
+    chi2, p, dof, _ = stats.chi2_contingency(ct, correction=False)
+    v = np.sqrt(chi2 / (ct.values.sum() * (min(ct.shape) - 1)))
+    return chi2, p, dof, v
+
+linhas = []
+for col in [&quot;Sex&quot;, &quot;Title_grp&quot;, &quot;Pclass&quot;, &quot;HasCabin&quot;, &quot;Deck&quot;, &quot;FamilyCat&quot;, &quot;IsAlone&quot;, &quot;Embarked&quot;]:
+    d = df.dropna(subset=[col])
+    chi2, p, dof, v = cramers_v(d[col], d[&quot;Survived&quot;])
+    linhas.append({&quot;variável&quot;: col, &quot;qui²&quot;: chi2, &quot;gl&quot;: dof, &quot;p-valor&quot;: p, &quot;V de Cramér&quot;: v})
+tab_chi = pd.DataFrame(linhas).sort_values(&quot;V de Cramér&quot;, ascending=False).reset_index(drop=True)
+display(tab_chi.style.format({&quot;qui²&quot;: &quot;{:.1f}&quot;, &quot;p-valor&quot;: &quot;{:.2e}&quot;, &quot;V de Cramér&quot;: &quot;{:.3f}&quot;}).background_gradient(subset=[&quot;V de Cramér&quot;], cmap=&quot;Blues&quot;))
+
+fig, ax = plt.subplots(figsize=(7, 3.6))
+ax.barh(tab_chi[&quot;variável&quot;][::-1], tab_chi[&quot;V de Cramér&quot;][::-1], color=COR_SOBREVIVEU)
+ax.set(title=&quot;Força da associação com a sobrevivência (V de Cramér)&quot;, xlabel=&quot;V de Cramér&quot;)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><div class="tabela"><style type="text/css">
+#T_44182_row0_col4 {
+  background-color: #08306b;
+  color: #f1f1f1;
+}
+#T_44182_row1_col4 {
+  background-color: #084184;
+  color: #f1f1f1;
+}
+#T_44182_row2_col4 {
+  background-color: #8abfdd;
+  color: #000000;
+}
+#T_44182_row3_col4 {
+  background-color: #91c3de;
+  color: #000000;
+}
+#T_44182_row4_col4 {
+  background-color: #a1cbe2;
+  color: #000000;
+}
+#T_44182_row5_col4 {
+  background-color: #b8d5ea;
+  color: #000000;
+}
+#T_44182_row6_col4 {
+  background-color: #e8f1fa;
+  color: #000000;
+}
+#T_44182_row7_col4 {
+  background-color: #f7fbff;
+  color: #000000;
+}
+</style>
+<table id="T_44182">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_44182_level0_col0" class="col_heading level0 col0" >variável</th>
+      <th id="T_44182_level0_col1" class="col_heading level0 col1" >qui²</th>
+      <th id="T_44182_level0_col2" class="col_heading level0 col2" >gl</th>
+      <th id="T_44182_level0_col3" class="col_heading level0 col3" >p-valor</th>
+      <th id="T_44182_level0_col4" class="col_heading level0 col4" >V de Cramér</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_44182_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_44182_row0_col0" class="data row0 col0" >Title_grp</td>
+      <td id="T_44182_row0_col1" class="data row0 col1" >288.1</td>
+      <td id="T_44182_row0_col2" class="data row0 col2" >4</td>
+      <td id="T_44182_row0_col3" class="data row0 col3" >3.96e-61</td>
+      <td id="T_44182_row0_col4" class="data row0 col4" >0.569</td>
+    </tr>
+    <tr>
+      <th id="T_44182_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_44182_row1_col0" class="data row1 col0" >Sex</td>
+      <td id="T_44182_row1_col1" class="data row1 col1" >263.1</td>
+      <td id="T_44182_row1_col2" class="data row1 col2" >1</td>
+      <td id="T_44182_row1_col3" class="data row1 col3" >3.71e-59</td>
+      <td id="T_44182_row1_col4" class="data row1 col4" >0.543</td>
+    </tr>
+    <tr>
+      <th id="T_44182_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_44182_row2_col0" class="data row2 col0" >Pclass</td>
+      <td id="T_44182_row2_col1" class="data row2 col1" >102.9</td>
+      <td id="T_44182_row2_col2" class="data row2 col2" >2</td>
+      <td id="T_44182_row2_col3" class="data row2 col3" >4.55e-23</td>
+      <td id="T_44182_row2_col4" class="data row2 col4" >0.340</td>
+    </tr>
+    <tr>
+      <th id="T_44182_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_44182_row3_col0" class="data row3 col0" >Deck</td>
+      <td id="T_44182_row3_col1" class="data row3 col1" >99.2</td>
+      <td id="T_44182_row3_col2" class="data row3 col2" >8</td>
+      <td id="T_44182_row3_col3" class="data row3 col3" >6.33e-18</td>
+      <td id="T_44182_row3_col4" class="data row3 col4" >0.334</td>
+    </tr>
+    <tr>
+      <th id="T_44182_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_44182_row4_col0" class="data row4 col0" >HasCabin</td>
+      <td id="T_44182_row4_col1" class="data row4 col1" >89.5</td>
+      <td id="T_44182_row4_col2" class="data row4 col2" >1</td>
+      <td id="T_44182_row4_col3" class="data row4 col3" >3.09e-21</td>
+      <td id="T_44182_row4_col4" class="data row4 col4" >0.317</td>
+    </tr>
+    <tr>
+      <th id="T_44182_level0_row5" class="row_heading level0 row5" >5</th>
+      <td id="T_44182_row5_col0" class="data row5 col0" >FamilyCat</td>
+      <td id="T_44182_row5_col1" class="data row5 col1" >74.5</td>
+      <td id="T_44182_row5_col2" class="data row5 col2" >2</td>
+      <td id="T_44182_row5_col3" class="data row5 col3" >6.52e-17</td>
+      <td id="T_44182_row5_col4" class="data row5 col4" >0.289</td>
+    </tr>
+    <tr>
+      <th id="T_44182_level0_row6" class="row_heading level0 row6" >6</th>
+      <td id="T_44182_row6_col0" class="data row6 col0" >IsAlone</td>
+      <td id="T_44182_row6_col1" class="data row6 col1" >36.9</td>
+      <td id="T_44182_row6_col2" class="data row6 col2" >1</td>
+      <td id="T_44182_row6_col3" class="data row6 col3" >1.28e-09</td>
+      <td id="T_44182_row6_col4" class="data row6 col4" >0.203</td>
+    </tr>
+    <tr>
+      <th id="T_44182_level0_row7" class="row_heading level0 row7" >7</th>
+      <td id="T_44182_row7_col0" class="data row7 col0" >Embarked</td>
+      <td id="T_44182_row7_col1" class="data row7 col1" >26.5</td>
+      <td id="T_44182_row7_col2" class="data row7 col2" >2</td>
+      <td id="T_44182_row7_col3" class="data row7 col3" >1.77e-06</td>
+      <td id="T_44182_row7_col4" class="data row7 col4" >0.173</td>
+    </tr>
+  </tbody>
+</table>
+</div><figure><img loading="lazy" src="img/fig-15.png" alt="Gráfico 15: 7.1 Associação das variáveis categóricas com a sobrevivência"><figcaption>Figura 15. 7.1 Associação das variáveis categóricas com a sobrevivência</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> todas as associações são estatisticamente significativas, mas a <strong>força</strong> varia: <em>título</em> (V = 0,57) e <em>sexo</em> (0,54) são fortes; <em>classe</em> (0,34), <em>convés</em> (0,33; inflado pela categoria "desconhecido", que é quase equivalente a "sem cabine"), <em>cabine registrada</em> (0,32) e <em>categoria de família</em> (0,29) são moderadas; <em>viajar só</em> (0,20) e <em>porto</em> (0,17) são fracas. Convenção grosseira: &lt;0,1 desprezível, 0,1–0,3 fraca/moderada, &gt;0,3 forte. Título e sexo são quase redundantes (o título é, em boa parte, o sexo com informação de idade/estado civil).</p></section>
+<section class="texto"><h3 id="72-quantificando-o-efeito-do-sexo-risco-relativo-e-odds-rati">7.2 Quantificando o efeito do sexo: risco relativo e <em>odds ratio</em></h3></section>
+<div class="celula" id="cel-24"><div class="cel-topo"><span class="cel-rotulo">Célula de código 24</span><button class="btn-copiar" type="button" data-alvo="cod-24">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-24"># Tabela 2×2: sexo × desfecho
+t = pd.crosstab(df[&quot;Sex&quot;], df[&quot;Survived&quot;]).loc[[&quot;female&quot;, &quot;male&quot;]]
+a, b = t.loc[&quot;female&quot;, 1], t.loc[&quot;female&quot;, 0]     # mulheres: sobreviveram / morreram
+c, d_ = t.loc[&quot;male&quot;, 1], t.loc[&quot;male&quot;, 0]        # homens
+p_f, p_m = a / (a + b), c / (c + d_)
+
+rr = p_f / p_m                                    # risco relativo
+or_ = (a * d_) / (b * c)                          # odds ratio
+ep = np.sqrt(1/a + 1/b + 1/c + 1/d_)              # erro-padrão do log(OR)
+ic_or = np.exp(np.log(or_) + np.array([-1.96, 1.96]) * ep)
+
+print(t.rename(columns={0: &quot;Morreu&quot;, 1: &quot;Sobreviveu&quot;}).to_string(), &quot;\n&quot;)
+print(f&quot;P(sobreviver | mulher) = {p_f:.1%}   |   P(sobreviver | homem) = {p_m:.1%}&quot;)
+print(f&quot;Diferença absoluta     = {100*(p_f-p_m):.1f} pontos percentuais&quot;)
+print(f&quot;Risco relativo         = {rr:.2f}  (mulheres tinham {rr:.1f}× a chance de sobreviver)&quot;)
+print(f&quot;Odds ratio             = {or_:.1f}  (IC95%: {ic_or[0]:.1f} – {ic_or[1]:.1f})&quot;)
+
+# Teste exato de Fisher para conferir
+print(&quot;Fisher exato: p =&quot;, f&quot;{stats.fisher_exact(t.values)[1]:.2e}&quot;)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Survived  Morreu  Sobreviveu
+Sex                         
+female        81         233
+male         468         109 
+
+P(sobreviver | mulher) = 74.2%   |   P(sobreviver | homem) = 18.9%
+Diferença absoluta     = 55.3 pontos percentuais
+Risco relativo         = 3.93  (mulheres tinham 3.9× a chance de sobreviver)
+Odds ratio             = 12.4  (IC95%: 8.9 – 17.1)
+Fisher exato: p = 6.46e-60
+</pre></div></div>
+<section class="texto"><h3 id="73-variáveis-contínuas-idade-e-tarifa-mann-whitney">7.3 Variáveis contínuas: idade e tarifa (Mann-Whitney)</h3>
+<p>Reportamos também a <strong>probabilidade de superioridade</strong> (AUC): a chance de que um sobrevivente sorteado ao acaso tenha valor <em>maior</em> que um não sobrevivente sorteado ao acaso (0,5 = sem diferença).</p></section>
+<div class="celula" id="cel-25"><div class="cel-topo"><span class="cel-rotulo">Célula de código 25</span><button class="btn-copiar" type="button" data-alvo="cod-25">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-25">linhas = []
+for col, rotulo in [(&quot;Age&quot;, &quot;Idade (apenas conhecidas)&quot;), (&quot;Age_imp&quot;, &quot;Idade (imputada)&quot;),
+                    (&quot;Fare&quot;, &quot;Tarifa&quot;), (&quot;FarePerPerson&quot;, &quot;Tarifa por pessoa&quot;), (&quot;FamilySize&quot;, &quot;Tamanho da família&quot;)]:
+    s1 = df.loc[df[&quot;Survived&quot;] == 1, col].dropna()
+    s0 = df.loc[df[&quot;Survived&quot;] == 0, col].dropna()
+    U, p = stats.mannwhitneyu(s1, s0, alternative=&quot;two-sided&quot;)
+    linhas.append({&quot;variável&quot;: rotulo, &quot;mediana sobreviventes&quot;: s1.median(), &quot;mediana não sobrev.&quot;: s0.median(),
+                   &quot;U&quot;: U, &quot;p-valor&quot;: p, &quot;P(superioridade)&quot;: U / (len(s1) * len(s0))})
+display(pd.DataFrame(linhas).style.format({&quot;mediana sobreviventes&quot;: &quot;{:.1f}&quot;, &quot;mediana não sobrev.&quot;: &quot;{:.1f}&quot;, &quot;U&quot;: &quot;{:.0f}&quot;,
+                                         &quot;p-valor&quot;: &quot;{:.2e}&quot;, &quot;P(superioridade)&quot;: &quot;{:.3f}&quot;}))</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><div class="tabela"><style type="text/css">
+</style>
+<table id="T_1e3fc">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_1e3fc_level0_col0" class="col_heading level0 col0" >variável</th>
+      <th id="T_1e3fc_level0_col1" class="col_heading level0 col1" >mediana sobreviventes</th>
+      <th id="T_1e3fc_level0_col2" class="col_heading level0 col2" >mediana não sobrev.</th>
+      <th id="T_1e3fc_level0_col3" class="col_heading level0 col3" >U</th>
+      <th id="T_1e3fc_level0_col4" class="col_heading level0 col4" >p-valor</th>
+      <th id="T_1e3fc_level0_col5" class="col_heading level0 col5" >P(superioridade)</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_1e3fc_level0_row0" class="row_heading level0 row0" >0</th>
+      <td id="T_1e3fc_row0_col0" class="data row0 col0" >Idade (apenas conhecidas)</td>
+      <td id="T_1e3fc_row0_col1" class="data row0 col1" >28.0</td>
+      <td id="T_1e3fc_row0_col2" class="data row0 col2" >28.0</td>
+      <td id="T_1e3fc_row0_col3" class="data row0 col3" >57682</td>
+      <td id="T_1e3fc_row0_col4" class="data row0 col4" >1.60e-01</td>
+      <td id="T_1e3fc_row0_col5" class="data row0 col5" >0.469</td>
+    </tr>
+    <tr>
+      <th id="T_1e3fc_level0_row1" class="row_heading level0 row1" >1</th>
+      <td id="T_1e3fc_row1_col0" class="data row1 col0" >Idade (imputada)</td>
+      <td id="T_1e3fc_row1_col1" class="data row1 col1" >27.5</td>
+      <td id="T_1e3fc_row1_col2" class="data row1 col2" >26.0</td>
+      <td id="T_1e3fc_row1_col3" class="data row1 col3" >89260</td>
+      <td id="T_1e3fc_row1_col4" class="data row1 col4" >2.16e-01</td>
+      <td id="T_1e3fc_row1_col5" class="data row1 col5" >0.475</td>
+    </tr>
+    <tr>
+      <th id="T_1e3fc_level0_row2" class="row_heading level0 row2" >2</th>
+      <td id="T_1e3fc_row2_col0" class="data row2 col0" >Tarifa</td>
+      <td id="T_1e3fc_row2_col1" class="data row2 col1" >26.0</td>
+      <td id="T_1e3fc_row2_col2" class="data row2 col2" >10.5</td>
+      <td id="T_1e3fc_row2_col3" class="data row2 col3" >129952</td>
+      <td id="T_1e3fc_row2_col4" class="data row2 col4" >4.55e-22</td>
+      <td id="T_1e3fc_row2_col5" class="data row2 col5" >0.692</td>
+    </tr>
+    <tr>
+      <th id="T_1e3fc_level0_row3" class="row_heading level0 row3" >3</th>
+      <td id="T_1e3fc_row3_col0" class="data row3 col0" >Tarifa por pessoa</td>
+      <td id="T_1e3fc_row3_col1" class="data row3 col1" >13.0</td>
+      <td id="T_1e3fc_row3_col2" class="data row3 col2" >8.1</td>
+      <td id="T_1e3fc_row3_col3" class="data row3 col3" >128928</td>
+      <td id="T_1e3fc_row3_col4" class="data row3 col4" >6.29e-21</td>
+      <td id="T_1e3fc_row3_col5" class="data row3 col5" >0.687</td>
+    </tr>
+    <tr>
+      <th id="T_1e3fc_level0_row4" class="row_heading level0 row4" >4</th>
+      <td id="T_1e3fc_row4_col0" class="data row4 col0" >Tamanho da família</td>
+      <td id="T_1e3fc_row4_col1" class="data row4 col1" >2.0</td>
+      <td id="T_1e3fc_row4_col2" class="data row4 col2" >1.0</td>
+      <td id="T_1e3fc_row4_col3" class="data row4 col3" >110099</td>
+      <td id="T_1e3fc_row4_col4" class="data row4 col4" >7.97e-07</td>
+      <td id="T_1e3fc_row4_col5" class="data row4 col5" >0.586</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> a tarifa distingue sobreviventes de não sobreviventes com probabilidade de superioridade de 0,69 (efeito moderado; p &lt; 10⁻²⁰), parcialmente por refletir a classe. A idade, isoladamente, <strong>não</strong> separa os grupos (0,47; p = 0,16), pois o efeito depende do sexo e da faixa etária (crianças vs. adultos). O tamanho da família tem efeito pequeno (0,59).</p></section>
+<section class="texto"><h3 id="74-regressão-logística-efeitos-mantendo-tudo-mais-constante">7.4 Regressão logística: efeitos "mantendo tudo mais constante"</h3>
+<p>A regressão logística estima, para cada variável, o <em>odds ratio</em> <strong>ajustado</strong> pelas demais. Um OR &gt; 1 aumenta a chance de sobreviver; &lt; 1 diminui. Assim separamos o efeito próprio de cada fator.</p></section>
+<div class="celula" id="cel-26"><div class="cel-topo"><span class="cel-rotulo">Célula de código 26</span><button class="btn-copiar" type="button" data-alvo="cod-26">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-26">df[&quot;Mulher&quot;] = (df[&quot;Sex&quot;] == &quot;female&quot;).astype(int)
+df[&quot;Age10&quot;] = df[&quot;Age_imp&quot;] / 10                      # efeito por década de idade
+
+formula_cheia = (&quot;Survived ~ Mulher + C(Pclass) + Age10 + C(FamilyCat, Treatment(&#x27;Sozinho&#x27;)) &quot;
+                 &quot;+ Fare_log + HasCabin + C(Embarked, Treatment(&#x27;S&#x27;))&quot;)
+m_cheio = smf.logit(formula_cheia, data=df).fit(disp=0)
+
+def tabela_or(modelo):
+    ci = modelo.conf_int()
+    t = pd.DataFrame({&quot;OR&quot;: np.exp(modelo.params), &quot;IC95% inf&quot;: np.exp(ci[0]), &quot;IC95% sup&quot;: np.exp(ci[1]), &quot;p-valor&quot;: modelo.pvalues})
+    return t.drop(index=&quot;Intercept&quot;)
+
+t_or = tabela_or(m_cheio)
+t_or.index = (t_or.index.str.replace(r&quot;C\(FamilyCat, Treatment\(&#x27;Sozinho&#x27;\)\)&quot;, &quot;Família&quot;, regex=True)
+                         .str.replace(r&quot;C\(Embarked, Treatment\(&#x27;S&#x27;\)\)&quot;, &quot;Porto&quot;, regex=True)
+                         .str.replace(r&quot;C\(Pclass\)&quot;, &quot;Classe&quot;, regex=True).str.replace(&quot;Mulher&quot;, &quot;Mulher (vs homem)&quot;))
+display(t_or.round(3))
+print(f&quot;n = {int(m_cheio.nobs)}  |  pseudo-R² de McFadden = {m_cheio.prsquared:.3f}&quot;)
+
+# Gráfico de floresta (forest plot) em escala log
+fig, ax = plt.subplots(figsize=(8, 4.6))
+yy = np.arange(len(t_or))[::-1]
+cores = [COR_SOBREVIVEU if (lo &gt; 1) else COR_MORREU if (hi &lt; 1) else &quot;gray&quot; for lo, hi in zip(t_or[&quot;IC95% inf&quot;], t_or[&quot;IC95% sup&quot;])]
+ax.hlines(yy, t_or[&quot;IC95% inf&quot;], t_or[&quot;IC95% sup&quot;], color=cores, lw=2)
+ax.scatter(t_or[&quot;OR&quot;], yy, color=cores, zorder=3)
+ax.axvline(1, color=&quot;black&quot;, ls=&quot;--&quot;, lw=1)
+ax.set_xscale(&quot;log&quot;); ax.set_yticks(yy); ax.set_yticklabels(t_or.index, fontsize=8)
+ax.set(title=&quot;Odds ratios ajustados (IC 95%)  azul: ↑ chance | vermelho: ↓ chance | cinza: não significativo&quot;, xlabel=&quot;Odds ratio (escala log)&quot;)
+ax.title.set_fontsize(9)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>OR</th>
+      <th>IC95% inf</th>
+      <th>IC95% sup</th>
+      <th>p-valor</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>Classe[T.2]</th>
+      <td>0.724</td>
+      <td>0.315</td>
+      <td>1.665</td>
+      <td>0.448</td>
+    </tr>
+    <tr>
+      <th>Classe[T.3]</th>
+      <td>0.275</td>
+      <td>0.110</td>
+      <td>0.686</td>
+      <td>0.006</td>
+    </tr>
+    <tr>
+      <th>Família[T.Pequena (2–4)]</th>
+      <td>0.953</td>
+      <td>0.604</td>
+      <td>1.502</td>
+      <td>0.835</td>
+    </tr>
+    <tr>
+      <th>Família[T.Grande (5+)]</th>
+      <td>0.082</td>
+      <td>0.030</td>
+      <td>0.224</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>Porto[T.C]</th>
+      <td>1.359</td>
+      <td>0.838</td>
+      <td>2.206</td>
+      <td>0.214</td>
+    </tr>
+    <tr>
+      <th>Porto[T.Q]</th>
+      <td>1.209</td>
+      <td>0.616</td>
+      <td>2.375</td>
+      <td>0.581</td>
+    </tr>
+    <tr>
+      <th>Mulher (vs homem)</th>
+      <td>14.450</td>
+      <td>9.622</td>
+      <td>21.702</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>Age10</th>
+      <td>0.656</td>
+      <td>0.556</td>
+      <td>0.775</td>
+      <td>0.000</td>
+    </tr>
+    <tr>
+      <th>Fare_log</th>
+      <td>1.351</td>
+      <td>0.966</td>
+      <td>1.891</td>
+      <td>0.079</td>
+    </tr>
+    <tr>
+      <th>HasCabin</th>
+      <td>2.234</td>
+      <td>1.137</td>
+      <td>4.389</td>
+      <td>0.020</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><pre class="saida-txt">n = 889  |  pseudo-R² de McFadden = 0.364
+</pre><figure><img loading="lazy" src="img/fig-16.png" alt="Gráfico 16: 7.4 Regressão logística: efeitos &quot;mantendo tudo mais constante&quot;"><figcaption>Figura 16. 7.4 Regressão logística: efeitos &quot;mantendo tudo mais constante&quot;</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> com tudo mais constante, <strong>ser mulher</strong> multiplica as <em>odds</em> de sobreviver por ~14 (OR 14,5; IC 9,6–21,7); <strong>estar na 3ª classe</strong> (vs. 1ª) reduz as <em>odds</em> em ~72% (OR 0,28), enquanto a 2ª classe não se distingue estatisticamente da 1ª; <strong>cada década a mais de idade</strong> reduz as <em>odds</em> em ~34% (OR 0,66); <strong>famílias grandes (5+)</strong> têm OR 0,08 em relação a quem viaja só; e <strong>ter cabine registrada</strong> dobra as <em>odds</em> (OR 2,2). Já o <strong>porto</strong> (p = 0,21 e 0,58) e a <strong>tarifa</strong> (p = 0,08) <strong>não são significativos no modelo completo</strong>: seus efeitos brutos foram absorvidos por classe, sexo, cabine e tamanho do grupo. Famílias pequenas (2–4) não diferem de quem viaja só <em>depois</em> desses controles, embora a taxa bruta seja o dobro.</p>
+<p>(<em>Odds</em> não são probabilidades: um OR de 14 não significa 14× a probabilidade; para isso veja as probabilidades previstas na Parte 7.6.)</p></section>
+<section class="texto"><h3 id="75-o-porto-de-embarque-tem-efeito-próprio-teste-de-razão-de-">7.5 O porto de embarque tem efeito próprio? (teste de razão de verossimilhança)</h3>
+<p>Comparamos modelos com e sem a variável, na mesma amostra, para testar formalmente se o porto acrescenta algo depois de controlar classe e sexo.</p></section>
+<div class="celula" id="cel-27"><div class="cel-topo"><span class="cel-rotulo">Célula de código 27</span><button class="btn-copiar" type="button" data-alvo="cod-27">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-27">d_emb = df.dropna(subset=[&quot;Embarked&quot;])
+m_sem_ctrl = smf.logit(&quot;Survived ~ C(Embarked, Treatment(&#x27;S&#x27;))&quot;, data=d_emb).fit(disp=0)
+m_com = smf.logit(&quot;Survived ~ C(Embarked, Treatment(&#x27;S&#x27;)) + C(Pclass) + Mulher&quot;, data=d_emb).fit(disp=0)
+m_sem = smf.logit(&quot;Survived ~ C(Pclass) + Mulher&quot;, data=d_emb).fit(disp=0)
+
+print(&quot;PORTO SOZINHO (OR vs Southampton):&quot;)
+print(tabela_or(m_sem_ctrl).round(3).to_string(), &quot;\n&quot;)
+print(&quot;PORTO CONTROLANDO CLASSE E SEXO (OR vs Southampton):&quot;)
+print(tabela_or(m_com).loc[[i for i in tabela_or(m_com).index if &quot;Embarked&quot; in i]].round(3).to_string(), &quot;\n&quot;)
+
+lr = 2 * (m_com.llf - m_sem.llf)
+p_lr = stats.chi2.sf(lr, df=2)
+print(f&quot;Teste de razão de verossimilhança (porto, após classe e sexo): χ²(2) = {lr:.2f}, p = {p_lr:.3f}&quot;)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">PORTO SOZINHO (OR vs Southampton):
+                                     OR  IC95% inf  IC95% sup  p-valor
+C(Embarked, Treatment(&#x27;S&#x27;))[T.C]  2.440      1.728      3.446    0.000
+C(Embarked, Treatment(&#x27;S&#x27;))[T.Q]  1.256      0.772      2.043    0.358 
+
+PORTO CONTROLANDO CLASSE E SEXO (OR vs Southampton):
+                                     OR  IC95% inf  IC95% sup  p-valor
+C(Embarked, Treatment(&#x27;S&#x27;))[T.C]  1.814      1.160      2.835    0.009
+C(Embarked, Treatment(&#x27;S&#x27;))[T.Q]  1.568      0.845      2.911    0.154 
+
+Teste de razão de verossimilhança (porto, após classe e sexo): χ²(2) = 7.96, p = 0.019
+</pre></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> o OR bruto de Cherbourg (vs. Southampton) é 2,44; controlando <strong>classe e sexo</strong> cai para 1,81 (e o teste de razão de verossimilhança ainda indica efeito residual, p ≈ 0,02); no modelo completo da Parte 7.4 (que inclui cabine, família etc.) cai para ~1,36 e deixa de ser significativo. Conclusão cautelosa: <strong>a maior parte da vantagem de Cherbourg é composição (classe, cabine), restando no máximo um efeito pequeno</strong>, difícil de separar com 889 observações.</p></section>
+<section class="texto"><h3 id="76-interações-o-efeito-de-ser-mulher-depende-da-classe-e-da-">7.6 Interações: o efeito de ser mulher depende da classe? E da idade?</h3>
+<p>Se sim, um modelo puramente aditivo deixa informação de lado.</p></section>
+<div class="celula" id="cel-28"><div class="cel-topo"><span class="cel-rotulo">Célula de código 28</span><button class="btn-copiar" type="button" data-alvo="cod-28">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-28">m_aditivo = smf.logit(&quot;Survived ~ Mulher + C(Pclass) + Age10&quot;, data=df).fit(disp=0)
+m_int_cls = smf.logit(&quot;Survived ~ Mulher * C(Pclass) + Age10&quot;, data=df).fit(disp=0)
+m_int_idade = smf.logit(&quot;Survived ~ Mulher * C(Pclass) + Mulher * Age10&quot;, data=df).fit(disp=0)
+
+for nome, m_novo, m_base, gl in [(&quot;Sexo × Classe&quot;, m_int_cls, m_aditivo, 2), (&quot;Sexo × Idade (além de Sexo × Classe)&quot;, m_int_idade, m_int_cls, 1)]:
+    lr = 2 * (m_novo.llf - m_base.llf)
+    print(f&quot;{nome:40s} LR χ²({gl}) = {lr:6.2f}   p = {stats.chi2.sf(lr, gl):.4g}&quot;)
+print(f&quot;\nAIC  aditivo: {m_aditivo.aic:.1f} | + Sexo×Classe: {m_int_cls.aic:.1f} | + Sexo×Idade: {m_int_idade.aic:.1f}  (menor = melhor)&quot;)
+
+# Probabilidades previstas pelo modelo com interações, por perfil
+grade = pd.DataFrame([(m, c, 30/10) for m in (0, 1) for c in (1, 2, 3)], columns=[&quot;Mulher&quot;, &quot;Pclass&quot;, &quot;Age10&quot;])
+grade[&quot;P(sobreviver) aos 30 anos&quot;] = m_int_idade.predict(grade).round(3)
+display(grade.assign(Perfil=grade[&quot;Mulher&quot;].map({1: &quot;Mulher&quot;, 0: &quot;Homem&quot;}) + &quot;, classe &quot; + grade[&quot;Pclass&quot;].astype(str))[[&quot;Perfil&quot;, &quot;P(sobreviver) aos 30 anos&quot;]])</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Sexo × Classe                            LR χ²(2) =  32.71   p = 7.905e-08
+Sexo × Idade (além de Sexo × Classe)     LR χ²(1) =   3.50   p = 0.06144
+
+AIC  aditivo: 810.1 | + Sexo×Classe: 781.4 | + Sexo×Idade: 779.9  (menor = melhor)
+</pre><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Perfil</th>
+      <th>P(sobreviver) aos 30 anos</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Homem, classe 1</td>
+      <td>0.500</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Homem, classe 2</td>
+      <td>0.140</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Homem, classe 3</td>
+      <td>0.102</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Mulher, classe 1</td>
+      <td>0.972</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Mulher, classe 2</td>
+      <td>0.921</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>Mulher, classe 3</td>
+      <td>0.453</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> a interação <strong>Sexo × Classe é altamente significativa</strong> (p ≈ 8×10⁻⁸) e reduz o AIC em ~29 pontos: o modelo aditivo é inadequado. A interação Sexo × Idade é só marginal (p ≈ 0,06). Pelo modelo, aos 30 anos a probabilidade prevista é de 97% (mulher, 1ª), 92% (2ª) e 45% (3ª), contra 50% (homem, 1ª), 14% (2ª) e 10% (3ª). <strong>Uma mulher de 3ª classe teve chance inferior à de um homem de 1ª classe.</strong></p></section>
+<section class="texto"><h2 id="8-correlações-multicolinearidade-e-informação-mútua">8. Correlações, multicolinearidade e informação mútua</h2></section>
+<div class="celula" id="cel-29"><div class="cel-topo"><span class="cel-rotulo">Célula de código 29</span><button class="btn-copiar" type="button" data-alvo="cod-29">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-29"># 8.1 Matriz de correlação de Spearman (robusta a assimetria; funciona com binárias/ordinais)
+cols_corr = [&quot;Survived&quot;, &quot;Mulher&quot;, &quot;Pclass&quot;, &quot;Age_imp&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;FamilySize&quot;, &quot;TicketGroupSize&quot;,
+             &quot;Fare_log&quot;, &quot;FarePerPerson&quot;, &quot;HasCabin&quot;, &quot;IsAlone&quot;]
+corr = df[cols_corr].corr(method=&quot;spearman&quot;)
+mask = np.triu(np.ones_like(corr, dtype=bool), k=1)
+fig, ax = plt.subplots(figsize=(10, 7.5))
+sns.heatmap(corr, mask=mask, annot=True, fmt=&quot;.2f&quot;, cmap=&quot;RdBu_r&quot;, center=0, vmin=-1, vmax=1,
+            square=True, linewidths=0.5, cbar_kws={&quot;shrink&quot;: 0.7}, annot_kws={&quot;size&quot;: 8}, ax=ax)
+ax.set_title(&quot;Correlação de Spearman entre variáveis&quot;)
+plt.tight_layout(); plt.show()
+print(&quot;Correlação de cada variável com a sobrevivência (Spearman):&quot;)
+print(corr[&quot;Survived&quot;].drop(&quot;Survived&quot;).sort_values(key=abs, ascending=False).round(3).to_string())</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-17.png" alt="Gráfico 17: 8. Correlações, multicolinearidade e informação mútua"><figcaption>Figura 17. 8. Correlações, multicolinearidade e informação mútua</figcaption></figure><pre class="saida-txt">Correlação de cada variável com a sobrevivência (Spearman):
+Mulher             0.543
+Pclass            -0.340
+Fare_log           0.324
+HasCabin           0.317
+FarePerPerson      0.315
+IsAlone           -0.203
+TicketGroupSize    0.181
+FamilySize         0.165
+Parch              0.138
+SibSp              0.089
+Age_imp           -0.041
+</pre></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> a variável mais correlacionada com a sobrevivência é o sexo feminino (ρ = 0,54), seguida de classe (−0,34), tarifa (0,32) e cabine registrada (0,32). A idade tem correlação praticamente nula (−0,04), o que <strong>não</strong> significa que seja irrelevante: seu efeito é não linear e depende do sexo e da faixa etária. Tarifa, classe e cabine são fortemente inter-relacionadas (veja o triângulo inferior), o que explica por que seus efeitos "individuais" encolhem nos modelos ajustados.</p></section>
+<div class="celula" id="cel-30"><div class="cel-topo"><span class="cel-rotulo">Célula de código 30</span><button class="btn-copiar" type="button" data-alvo="cod-30">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-30"># 8.2 Multicolinearidade: Fator de Inflação da Variância (VIF). Regra prática: VIF &gt; 5–10 é preocupante
+from statsmodels.stats.outliers_influence import variance_inflation_factor
+import warnings as _w
+_w.simplefilter(&#x27;ignore&#x27;)      # silencia avisos de matriz singular do caso redundante abaixo
+Xv = sm.add_constant(df[[&quot;Mulher&quot;, &quot;Pclass&quot;, &quot;Age_imp&quot;, &quot;FamilySize&quot;, &quot;Fare_log&quot;, &quot;HasCabin&quot;]])
+vif = pd.Series([variance_inflation_factor(Xv.values, i) for i in range(1, Xv.shape[1])], index=Xv.columns[1:])
+print(&quot;VIF (conjunto do modelo logístico):&quot;); print(vif.round(2).to_string())
+
+Xv2 = sm.add_constant(df[[&quot;Mulher&quot;, &quot;Pclass&quot;, &quot;Age_imp&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;FamilySize&quot;, &quot;Fare_log&quot;]])
+vif2 = pd.Series([variance_inflation_factor(Xv2.values, i) for i in range(1, Xv2.shape[1])], index=Xv2.columns[1:])
+print(&quot;\nVIF incluindo SibSp, Parch e FamilySize juntos (FamilySize = SibSp + Parch + 1 → colinearidade perfeita):&quot;); print(vif2.clip(upper=1000).round(1).to_string(), &quot;\n(valores truncados em 1000; na prática, VIF = ∞)&quot;)
+print(&quot;\n→ Moral: nunca use SibSp, Parch e FamilySize simultaneamente em modelos lineares/logísticos sem regularização.&quot;)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">VIF (conjunto do modelo logístico):
+Mulher        1.10
+Pclass        3.37
+Age_imp       1.33
+FamilySize    1.56
+Fare_log      2.75
+HasCabin      2.17
+
+VIF incluindo SibSp, Parch e FamilySize juntos (FamilySize = SibSp + Parch + 1 → colinearidade perfeita):
+Mulher           1.1
+Pclass           2.5
+Age_imp          1.3
+SibSp         1000.0
+Parch         1000.0
+FamilySize    1000.0
+Fare_log         2.7 
+(valores truncados em 1000; na prática, VIF = ∞)
+
+→ Moral: nunca use SibSp, Parch e FamilySize simultaneamente em modelos lineares/logísticos sem regularização.
+</pre></div></div>
+<div class="celula" id="cel-31"><div class="cel-topo"><span class="cel-rotulo">Célula de código 31</span><button class="btn-copiar" type="button" data-alvo="cod-31">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-31"># 8.3 Informação mútua: captura relações não lineares e interações simples
+aux = pd.DataFrame({
+    &quot;Sexo&quot;: df[&quot;Mulher&quot;], &quot;Classe&quot;: df[&quot;Pclass&quot;], &quot;Título&quot;: df[&quot;Title_grp&quot;].astype(&quot;category&quot;).cat.codes,
+    &quot;Convés&quot;: df[&quot;Deck&quot;].astype(&quot;category&quot;).cat.codes, &quot;Cabine?&quot;: df[&quot;HasCabin&quot;],
+    &quot;Porto&quot;: df[&quot;Embarked&quot;].fillna(&quot;S&quot;).astype(&quot;category&quot;).cat.codes, &quot;Família (cat.)&quot;: df[&quot;FamilyCat&quot;].astype(str).astype(&quot;category&quot;).cat.codes,
+    &quot;Nº no bilhete&quot;: df[&quot;TicketGroupSize&quot;], &quot;Idade&quot;: df[&quot;Age_imp&quot;], &quot;log(Tarifa)&quot;: df[&quot;Fare_log&quot;], &quot;Tarifa/pessoa&quot;: df[&quot;FarePerPerson&quot;],
+})
+discretas = [c not in (&quot;Idade&quot;, &quot;log(Tarifa)&quot;, &quot;Tarifa/pessoa&quot;) for c in aux.columns]
+mi = pd.Series(mutual_info_classif(aux, df[&quot;Survived&quot;], discrete_features=discretas, random_state=SEED), index=aux.columns).sort_values()
+fig, ax = plt.subplots(figsize=(7, 4))
+ax.barh(mi.index, mi.values, color=COR_SOBREVIVEU)
+ax.set(title=&quot;Informação mútua com a sobrevivência&quot;, xlabel=&quot;MI (nats)&quot;)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-18.png" alt="Gráfico 18: 8. Correlações, multicolinearidade e informação mútua"><figcaption>Figura 18. 8. Correlações, multicolinearidade e informação mútua</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> pela informação mútua (que capta relações não lineares), sexo e título ficam no topo, seguidos de classe e tarifa. Atenção: a MI da tarifa e da idade (contínuas) é estimada por vizinhos mais próximos e é mais ruidosa.</p></section>
+<section class="texto"><h2 id="9-modelagem-preditiva">9. Modelagem preditiva</h2>
+<h3 id="protocolo-para-uma-avaliação-honesta">Protocolo (para uma avaliação honesta)</h3>
+<ol>
+<li><strong>Separar um conjunto de teste (20%) e não tocá-lo</strong> até o final.</li>
+<li>Todo o pré-processamento (imputação de idade, padronização, one-hot) fica <strong>dentro de um <code>Pipeline</code></strong>, aprendido apenas com os dados de treino de cada <em>fold</em>. Isso evita <strong>vazamento de dados</strong>.</li>
+<li>Comparar modelos por <strong>validação cruzada repetida</strong> (5 folds × 3 repetições) no treino.</li>
+<li>Ajustar hiperparâmetros por <em>grid search</em> (métrica: AUC-ROC) só no treino.</li>
+<li>Avaliar <strong>uma vez</strong> no teste.</li>
+<li>Comparar contra <strong>linhas de base simples</strong> (sempre "morreu"; "mulher sobrevive, homem morre"), pois sem elas a acurácia não tem contexto.</li>
+</ol>
+<blockquote>
+<p>Ordem de grandeza para comparação: modelos honestos no desafio do Kaggle costumam ficar na faixa de 77–80% de acurácia no <em>leaderboard</em> público; aqui, com validação cruzada, esperamos algo em torno de 80–83%.</p>
+</blockquote></section>
+<div class="celula" id="cel-32"><div class="cel-topo"><span class="cel-rotulo">Célula de código 32</span><button class="btn-copiar" type="button" data-alvo="cod-32">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-32"># --- Transformador próprio: imputa Age pela mediana de (Título × Classe) aprendida SÓ no treino ------
+class ImputadorIdade(BaseEstimator, TransformerMixin):
+    &quot;&quot;&quot;Preenche Age com a mediana do grupo (Title_grp, Pclass) e cria o indicador Age_ausente.&quot;&quot;&quot;
+    def fit(self, X, y=None):
+        self.med_grupo_ = X.groupby([&quot;Title_grp&quot;, &quot;Pclass&quot;])[&quot;Age&quot;].median()
+        self.med_titulo_ = X.groupby(&quot;Title_grp&quot;)[&quot;Age&quot;].median()
+        self.med_geral_ = X[&quot;Age&quot;].median()
+        return self
+    def transform(self, X):
+        X = X.copy()
+        X[&quot;Age_ausente&quot;] = X[&quot;Age&quot;].isna().astype(int)
+        chaves = pd.MultiIndex.from_frame(X[[&quot;Title_grp&quot;, &quot;Pclass&quot;]])
+        alvo = pd.Series(self.med_grupo_.reindex(chaves).values, index=X.index)
+        alvo = alvo.fillna(X[&quot;Title_grp&quot;].map(self.med_titulo_)).fillna(self.med_geral_)
+        X[&quot;Age&quot;] = X[&quot;Age&quot;].fillna(alvo)
+        return X
+
+COLS_NUM = [&quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare_log&quot;, &quot;FamilySize&quot;, &quot;TicketGroupSize&quot;, &quot;Age_ausente&quot;]
+COLS_CAT = [&quot;Pclass&quot;, &quot;Sex&quot;, &quot;Embarked&quot;, &quot;Title_grp&quot;, &quot;HasCabin&quot;, &quot;IsAlone&quot;]
+
+def monta_pipeline(modelo):
+    pre = ColumnTransformer([
+        (&quot;num&quot;, StandardScaler(), COLS_NUM),
+        (&quot;cat&quot;, Pipeline([(&quot;imp&quot;, SimpleImputer(strategy=&quot;most_frequent&quot;)),
+                          (&quot;oh&quot;, OneHotEncoder(handle_unknown=&quot;ignore&quot;, sparse_output=False))]), COLS_CAT),
+    ])
+    return Pipeline([(&quot;idade&quot;, ImputadorIdade()), (&quot;pre&quot;, pre), (&quot;modelo&quot;, modelo)])
+
+# Matriz de atributos (Age mantém NaN de propósito: quem imputa é o pipeline)
+X = df[[&quot;Age&quot;, &quot;SibSp&quot;, &quot;Parch&quot;, &quot;Fare_log&quot;, &quot;FamilySize&quot;, &quot;TicketGroupSize&quot;,
+        &quot;Pclass&quot;, &quot;Sex&quot;, &quot;Embarked&quot;, &quot;Title_grp&quot;, &quot;HasCabin&quot;, &quot;IsAlone&quot;]].copy()
+for c in [&quot;Pclass&quot;, &quot;HasCabin&quot;, &quot;IsAlone&quot;]:
+    X[c] = X[c].astype(str)            # tratados como categorias, não como números
+y = df[&quot;Survived&quot;]
+
+X_tr, X_te, y_tr, y_te = train_test_split(X, y, test_size=0.20, stratify=y, random_state=SEED)
+print(f&quot;Treino: {X_tr.shape[0]} | Teste: {X_te.shape[0]} | taxa de sobrev. treino {y_tr.mean():.3f} / teste {y_te.mean():.3f}&quot;)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Treino: 712 | Teste: 179 | taxa de sobrev. treino 0.383 / teste 0.385
+</pre></div></div>
+<section class="texto"><h3 id="91-linhas-de-base-e-comparação-de-modelos-por-validação-cruz">9.1 Linhas de base e comparação de modelos por validação cruzada</h3></section>
+<div class="celula" id="cel-33"><div class="cel-topo"><span class="cel-rotulo">Célula de código 33</span><button class="btn-copiar" type="button" data-alvo="cod-33">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-33">modelos = {
+    &quot;Dummy (maioria)&quot;: DummyClassifier(strategy=&quot;most_frequent&quot;),
+    &quot;Regressão Logística&quot;: LogisticRegression(max_iter=2000),
+    &quot;KNN (k=15)&quot;: KNeighborsClassifier(n_neighbors=15),
+    &quot;SVM (RBF)&quot;: SVC(probability=True, random_state=SEED),
+    &quot;Random Forest&quot;: RandomForestClassifier(n_estimators=300, random_state=SEED, n_jobs=1),
+    &quot;Gradient Boosting&quot;: GradientBoostingClassifier(random_state=SEED),
+}
+cv_rep = RepeatedStratifiedKFold(n_splits=5, n_repeats=3, random_state=SEED)
+scoring = {&quot;acc&quot;: &quot;accuracy&quot;, &quot;auc&quot;: &quot;roc_auc&quot;, &quot;f1&quot;: &quot;f1&quot;}
+
+res_cv, folds_acc = [], {}
+for nome, m in modelos.items():
+    r = cross_validate(monta_pipeline(m), X_tr, y_tr, cv=cv_rep, scoring=scoring, n_jobs=-1)
+    folds_acc[nome] = r[&quot;test_acc&quot;]
+    res_cv.append({&quot;modelo&quot;: nome, &quot;acurácia&quot;: r[&quot;test_acc&quot;].mean(), &quot;± dp&quot;: r[&quot;test_acc&quot;].std(),
+                   &quot;AUC-ROC&quot;: r[&quot;test_auc&quot;].mean(), &quot;F1&quot;: r[&quot;test_f1&quot;].mean()})
+tab_cv = pd.DataFrame(res_cv).set_index(&quot;modelo&quot;)
+acc_regra_treino = ((X_tr[&quot;Sex&quot;] == &quot;female&quot;).astype(int) == y_tr).mean()
+print(f&quot;Referência: a regra &#x27;mulher vive, homem morre&#x27; acerta {acc_regra_treino:.3f} do conjunto de treino (sem ajuste algum).\n&quot;)
+display(tab_cv.round(3).style.background_gradient(subset=[&quot;acurácia&quot;, &quot;AUC-ROC&quot;], cmap=&quot;Blues&quot;))
+
+fig, ax = plt.subplots(figsize=(9, 3.8))
+ordem_m = tab_cv[&quot;acurácia&quot;].sort_values().index
+sns.boxplot(data=pd.DataFrame(folds_acc)[ordem_m], orient=&quot;h&quot;, color=&quot;#a9c5d8&quot;, ax=ax)
+ax.set(title=&quot;Acurácia em 15 folds (5×3) no treino&quot;, xlabel=&quot;Acurácia&quot;)
+ax.axvline(acc_regra_treino, color=COR_MORREU, ls=&quot;--&quot;, label=&quot;regra &#x27;mulher vive&#x27;&quot;); ax.legend()
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Referência: a regra &#x27;mulher vive, homem morre&#x27; acerta 0.789 do conjunto de treino (sem ajuste algum).
+
+</pre><div class="tabela"><style type="text/css">
+#T_0b16e_row0_col0, #T_0b16e_row0_col2 {
+  background-color: #f7fbff;
+  color: #000000;
+}
+#T_0b16e_row1_col0 {
+  background-color: #083573;
+  color: #f1f1f1;
+}
+#T_0b16e_row1_col2 {
+  background-color: #083e81;
+  color: #f1f1f1;
+}
+#T_0b16e_row2_col0 {
+  background-color: #084a91;
+  color: #f1f1f1;
+}
+#T_0b16e_row2_col2, #T_0b16e_row3_col2 {
+  background-color: #084387;
+  color: #f1f1f1;
+}
+#T_0b16e_row3_col0, #T_0b16e_row5_col2 {
+  background-color: #08306b;
+  color: #f1f1f1;
+}
+#T_0b16e_row4_col0 {
+  background-color: #084285;
+  color: #f1f1f1;
+}
+#T_0b16e_row4_col2 {
+  background-color: #083c7d;
+  color: #f1f1f1;
+}
+#T_0b16e_row5_col0 {
+  background-color: #08326e;
+  color: #f1f1f1;
+}
+</style>
+<table id="T_0b16e">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_0b16e_level0_col0" class="col_heading level0 col0" >acurácia</th>
+      <th id="T_0b16e_level0_col1" class="col_heading level0 col1" >± dp</th>
+      <th id="T_0b16e_level0_col2" class="col_heading level0 col2" >AUC-ROC</th>
+      <th id="T_0b16e_level0_col3" class="col_heading level0 col3" >F1</th>
+    </tr>
+    <tr>
+      <th class="index_name level0" >modelo</th>
+      <th class="blank col0" >&nbsp;</th>
+      <th class="blank col1" >&nbsp;</th>
+      <th class="blank col2" >&nbsp;</th>
+      <th class="blank col3" >&nbsp;</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_0b16e_level0_row0" class="row_heading level0 row0" >Dummy (maioria)</th>
+      <td id="T_0b16e_row0_col0" class="data row0 col0" >0.617000</td>
+      <td id="T_0b16e_row0_col1" class="data row0 col1" >0.003000</td>
+      <td id="T_0b16e_row0_col2" class="data row0 col2" >0.500000</td>
+      <td id="T_0b16e_row0_col3" class="data row0 col3" >0.000000</td>
+    </tr>
+    <tr>
+      <th id="T_0b16e_level0_row1" class="row_heading level0 row1" >Regressão Logística</th>
+      <td id="T_0b16e_row1_col0" class="data row1 col0" >0.827000</td>
+      <td id="T_0b16e_row1_col1" class="data row1 col1" >0.026000</td>
+      <td id="T_0b16e_row1_col2" class="data row1 col2" >0.871000</td>
+      <td id="T_0b16e_row1_col3" class="data row1 col3" >0.770000</td>
+    </tr>
+    <tr>
+      <th id="T_0b16e_level0_row2" class="row_heading level0 row2" >KNN (k=15)</th>
+      <td id="T_0b16e_row2_col0" class="data row2 col0" >0.811000</td>
+      <td id="T_0b16e_row2_col1" class="data row2 col1" >0.024000</td>
+      <td id="T_0b16e_row2_col2" class="data row2 col2" >0.865000</td>
+      <td id="T_0b16e_row2_col3" class="data row2 col3" >0.735000</td>
+    </tr>
+    <tr>
+      <th id="T_0b16e_level0_row3" class="row_heading level0 row3" >SVM (RBF)</th>
+      <td id="T_0b16e_row3_col0" class="data row3 col0" >0.832000</td>
+      <td id="T_0b16e_row3_col1" class="data row3 col1" >0.024000</td>
+      <td id="T_0b16e_row3_col2" class="data row3 col2" >0.865000</td>
+      <td id="T_0b16e_row3_col3" class="data row3 col3" >0.771000</td>
+    </tr>
+    <tr>
+      <th id="T_0b16e_level0_row4" class="row_heading level0 row4" >Random Forest</th>
+      <td id="T_0b16e_row4_col0" class="data row4 col0" >0.817000</td>
+      <td id="T_0b16e_row4_col1" class="data row4 col1" >0.025000</td>
+      <td id="T_0b16e_row4_col2" class="data row4 col2" >0.874000</td>
+      <td id="T_0b16e_row4_col3" class="data row4 col3" >0.758000</td>
+    </tr>
+    <tr>
+      <th id="T_0b16e_level0_row5" class="row_heading level0 row5" >Gradient Boosting</th>
+      <td id="T_0b16e_row5_col0" class="data row5 col0" >0.830000</td>
+      <td id="T_0b16e_row5_col1" class="data row5 col1" >0.027000</td>
+      <td id="T_0b16e_row5_col2" class="data row5 col2" >0.893000</td>
+      <td id="T_0b16e_row5_col3" class="data row5 col3" >0.768000</td>
+    </tr>
+  </tbody>
+</table>
+</div><figure><img loading="lazy" src="img/fig-19.png" alt="Gráfico 19: 9.1 Linhas de base e comparação de modelos por validação cruzada"><figcaption>Figura 19. 9.1 Linhas de base e comparação de modelos por validação cruzada</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> todos os modelos reais ficam entre 81% e 83% de acurácia (desvio-padrão entre folds ≈ 2,5 p.p.), ou seja, <strong>estatisticamente empatados</strong>, e só ~2–5 p.p. acima da regra de uma linha (≈ 79%). O AUC é um pouco melhor para o Gradient Boosting (0,89), a menor diferença entre modelos que vale a pena notar.</p></section>
+<section class="texto"><h3 id="92-ajuste-de-hiperparâmetros-grid-search">9.2 Ajuste de hiperparâmetros (<em>grid search</em>)</h3>
+<p>Usamos validação cruzada de 5 folds dentro do treino e escolhemos pelo <strong>AUC-ROC</strong>, métrica que não depende de um limiar de decisão.</p></section>
+<div class="celula" id="cel-34"><div class="cel-topo"><span class="cel-rotulo">Célula de código 34</span><button class="btn-copiar" type="button" data-alvo="cod-34">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-34">grades = {
+    &quot;Regressão Logística&quot;: {&quot;modelo__C&quot;: [0.03, 0.1, 0.3, 1, 3, 10]},
+    &quot;KNN (k=15)&quot;: {&quot;modelo__n_neighbors&quot;: [7, 11, 15, 25, 35]},
+    &quot;SVM (RBF)&quot;: {&quot;modelo__C&quot;: [0.5, 1, 3, 10], &quot;modelo__gamma&quot;: [&quot;scale&quot;, 0.01, 0.03, 0.1]},
+    &quot;Random Forest&quot;: {&quot;modelo__max_depth&quot;: [3, 5, 8, None], &quot;modelo__min_samples_leaf&quot;: [1, 3, 5]},
+    &quot;Gradient Boosting&quot;: {&quot;modelo__n_estimators&quot;: [100, 200], &quot;modelo__learning_rate&quot;: [0.03, 0.1], &quot;modelo__max_depth&quot;: [2, 3]},
+}
+cv_grid = StratifiedKFold(n_splits=5, shuffle=True, random_state=SEED)
+tunados = {}
+for nome, g in grades.items():
+    gs = GridSearchCV(monta_pipeline(modelos[nome]), g, scoring=&quot;roc_auc&quot;, cv=cv_grid, n_jobs=-1)
+    gs.fit(X_tr, y_tr)
+    tunados[nome] = gs
+    print(f&quot;{nome:22s} AUC (CV) = {gs.best_score_:.4f}  | melhores parâmetros: { {k.split(&#x27;__&#x27;)[1]: v for k, v in gs.best_params_.items()} }&quot;)
+
+nome_melhor = max(tunados, key=lambda k: tunados[k].best_score_)     # escolha feita SEM olhar o teste
+print(f&quot;\n🏆 Melhor modelo pela validação cruzada: {nome_melhor}&quot;)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Regressão Logística    AUC (CV) = 0.8706  | melhores parâmetros: {&#x27;C&#x27;: 1}
+</pre><pre class="saida-txt">KNN (k=15)             AUC (CV) = 0.8722  | melhores parâmetros: {&#x27;n_neighbors&#x27;: 25}
+</pre><pre class="saida-txt">SVM (RBF)              AUC (CV) = 0.8731  | melhores parâmetros: {&#x27;C&#x27;: 10, &#x27;gamma&#x27;: 0.03}
+</pre><pre class="saida-txt">Random Forest          AUC (CV) = 0.8864  | melhores parâmetros: {&#x27;max_depth&#x27;: None, &#x27;min_samples_leaf&#x27;: 3}
+</pre><pre class="saida-txt">Gradient Boosting      AUC (CV) = 0.9003  | melhores parâmetros: {&#x27;learning_rate&#x27;: 0.1, &#x27;max_depth&#x27;: 2, &#x27;n_estimators&#x27;: 200}
+
+🏆 Melhor modelo pela validação cruzada: Gradient Boosting
+</pre></div></div>
+<section class="texto"><h3 id="93-avaliação-final-no-conjunto-de-teste-uma-única-vez">9.3 Avaliação final no conjunto de teste (uma única vez)</h3>
+<p>Incluímos duas linhas de base: <strong>"sempre morre"</strong> e a <strong>regra de uma linha</strong> <em>"mulher sobrevive, homem morre"</em>. Qualquer modelo útil precisa superá-las com folga.</p></section>
+<div class="celula" id="cel-35"><div class="cel-topo"><span class="cel-rotulo">Célula de código 35</span><button class="btn-copiar" type="button" data-alvo="cod-35">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-35">def metricas(y_true, prob, limiar=0.5):
+    pred = (prob &gt;= limiar).astype(int)
+    return {&quot;acurácia&quot;: accuracy_score(y_true, pred), &quot;precisão&quot;: precision_score(y_true, pred, zero_division=0),
+            &quot;recall&quot;: recall_score(y_true, pred), &quot;F1&quot;: f1_score(y_true, pred), &quot;AUC-ROC&quot;: roc_auc_score(y_true, prob),
+            &quot;Brier&quot;: brier_score_loss(y_true, prob)}
+
+linhas = {}
+linhas[&quot;Base: sempre &#x27;morreu&#x27;&quot;] = metricas(y_te, np.zeros(len(y_te)))
+linhas[&quot;Base: regra &#x27;mulher vive&#x27;&quot;] = metricas(y_te, (X_te[&quot;Sex&quot;] == &quot;female&quot;).astype(float).values)
+probas_te = {}
+for nome, gs in tunados.items():
+    probas_te[nome] = gs.predict_proba(X_te)[:, 1]
+    linhas[nome] = metricas(y_te, probas_te[nome])
+tab_te = pd.DataFrame(linhas).T
+# IC95% de Wilson para a acurácia (n = 179 → incerteza grande!)
+ic = tab_te[&quot;acurácia&quot;].apply(lambda a: wilson(round(a * len(y_te)), len(y_te)))
+tab_te[&quot;IC95% acurácia&quot;] = ic.apply(lambda t: f&quot;{t[0]:.3f} – {t[1]:.3f}&quot;)
+display(tab_te.round(3).style.background_gradient(subset=[&quot;acurácia&quot;, &quot;AUC-ROC&quot;], cmap=&quot;Blues&quot;))
+print(f&quot;⚠️ Com apenas {len(y_te)} passageiros no teste, 1 acerto a mais ou a menos muda a acurácia em {100/len(y_te):.2f} p.p. &quot;
+      f&quot;Diferenças menores que ~5 p.p. entre modelos NÃO são estatisticamente distinguíveis.&quot;)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><div class="tabela"><style type="text/css">
+#T_4e6de_row0_col0, #T_4e6de_row0_col4 {
+  background-color: #f7fbff;
+  color: #000000;
+}
+#T_4e6de_row1_col0 {
+  background-color: #2c7cba;
+  color: #f1f1f1;
+}
+#T_4e6de_row1_col4 {
+  background-color: #3484bf;
+  color: #f1f1f1;
+}
+#T_4e6de_row2_col0, #T_4e6de_row4_col4 {
+  background-color: #08306b;
+  color: #f1f1f1;
+}
+#T_4e6de_row2_col4 {
+  background-color: #083370;
+  color: #f1f1f1;
+}
+#T_4e6de_row3_col0 {
+  background-color: #1c6ab0;
+  color: #f1f1f1;
+}
+#T_4e6de_row3_col4 {
+  background-color: #084488;
+  color: #f1f1f1;
+}
+#T_4e6de_row4_col0 {
+  background-color: #08509b;
+  color: #f1f1f1;
+}
+#T_4e6de_row5_col0 {
+  background-color: #0d57a1;
+  color: #f1f1f1;
+}
+#T_4e6de_row5_col4 {
+  background-color: #084184;
+  color: #f1f1f1;
+}
+#T_4e6de_row6_col0 {
+  background-color: #125da6;
+  color: #f1f1f1;
+}
+#T_4e6de_row6_col4 {
+  background-color: #084e98;
+  color: #f1f1f1;
+}
+</style>
+<table id="T_4e6de">
+  <thead>
+    <tr>
+      <th class="blank level0" >&nbsp;</th>
+      <th id="T_4e6de_level0_col0" class="col_heading level0 col0" >acurácia</th>
+      <th id="T_4e6de_level0_col1" class="col_heading level0 col1" >precisão</th>
+      <th id="T_4e6de_level0_col2" class="col_heading level0 col2" >recall</th>
+      <th id="T_4e6de_level0_col3" class="col_heading level0 col3" >F1</th>
+      <th id="T_4e6de_level0_col4" class="col_heading level0 col4" >AUC-ROC</th>
+      <th id="T_4e6de_level0_col5" class="col_heading level0 col5" >Brier</th>
+      <th id="T_4e6de_level0_col6" class="col_heading level0 col6" >IC95% acurácia</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th id="T_4e6de_level0_row0" class="row_heading level0 row0" >Base: sempre 'morreu'</th>
+      <td id="T_4e6de_row0_col0" class="data row0 col0" >0.615000</td>
+      <td id="T_4e6de_row0_col1" class="data row0 col1" >0.000000</td>
+      <td id="T_4e6de_row0_col2" class="data row0 col2" >0.000000</td>
+      <td id="T_4e6de_row0_col3" class="data row0 col3" >0.000000</td>
+      <td id="T_4e6de_row0_col4" class="data row0 col4" >0.500000</td>
+      <td id="T_4e6de_row0_col5" class="data row0 col5" >0.385000</td>
+      <td id="T_4e6de_row0_col6" class="data row0 col6" >0.542 – 0.683</td>
+    </tr>
+    <tr>
+      <th id="T_4e6de_level0_row1" class="row_heading level0 row1" >Base: regra 'mulher vive'</th>
+      <td id="T_4e6de_row1_col0" class="data row1 col0" >0.777000</td>
+      <td id="T_4e6de_row1_col1" class="data row1 col1" >0.738000</td>
+      <td id="T_4e6de_row1_col2" class="data row1 col2" >0.652000</td>
+      <td id="T_4e6de_row1_col3" class="data row1 col3" >0.692000</td>
+      <td id="T_4e6de_row1_col4" class="data row1 col4" >0.753000</td>
+      <td id="T_4e6de_row1_col5" class="data row1 col5" >0.223000</td>
+      <td id="T_4e6de_row1_col6" class="data row1 col6" >0.710 – 0.831</td>
+    </tr>
+    <tr>
+      <th id="T_4e6de_level0_row2" class="row_heading level0 row2" >Regressão Logística</th>
+      <td id="T_4e6de_row2_col0" class="data row2 col0" >0.844000</td>
+      <td id="T_4e6de_row2_col1" class="data row2 col1" >0.806000</td>
+      <td id="T_4e6de_row2_col2" class="data row2 col2" >0.783000</td>
+      <td id="T_4e6de_row2_col3" class="data row2 col3" >0.794000</td>
+      <td id="T_4e6de_row2_col4" class="data row2 col4" >0.868000</td>
+      <td id="T_4e6de_row2_col5" class="data row2 col5" >0.130000</td>
+      <td id="T_4e6de_row2_col6" class="data row2 col6" >0.783 – 0.890</td>
+    </tr>
+    <tr>
+      <th id="T_4e6de_level0_row3" class="row_heading level0 row3" >KNN (k=15)</th>
+      <td id="T_4e6de_row3_col0" class="data row3 col0" >0.793000</td>
+      <td id="T_4e6de_row3_col1" class="data row3 col1" >0.750000</td>
+      <td id="T_4e6de_row3_col2" class="data row3 col2" >0.696000</td>
+      <td id="T_4e6de_row3_col3" class="data row3 col3" >0.722000</td>
+      <td id="T_4e6de_row3_col4" class="data row3 col4" >0.845000</td>
+      <td id="T_4e6de_row3_col5" class="data row3 col5" >0.147000</td>
+      <td id="T_4e6de_row3_col6" class="data row3 col6" >0.728 – 0.846</td>
+    </tr>
+    <tr>
+      <th id="T_4e6de_level0_row4" class="row_heading level0 row4" >SVM (RBF)</th>
+      <td id="T_4e6de_row4_col0" class="data row4 col0" >0.816000</td>
+      <td id="T_4e6de_row4_col1" class="data row4 col1" >0.800000</td>
+      <td id="T_4e6de_row4_col2" class="data row4 col2" >0.696000</td>
+      <td id="T_4e6de_row4_col3" class="data row4 col3" >0.744000</td>
+      <td id="T_4e6de_row4_col4" class="data row4 col4" >0.873000</td>
+      <td id="T_4e6de_row4_col5" class="data row4 col5" >0.136000</td>
+      <td id="T_4e6de_row4_col6" class="data row4 col6" >0.752 – 0.866</td>
+    </tr>
+    <tr>
+      <th id="T_4e6de_level0_row5" class="row_heading level0 row5" >Random Forest</th>
+      <td id="T_4e6de_row5_col0" class="data row5 col0" >0.810000</td>
+      <td id="T_4e6de_row5_col1" class="data row5 col1" >0.787000</td>
+      <td id="T_4e6de_row5_col2" class="data row5 col2" >0.696000</td>
+      <td id="T_4e6de_row5_col3" class="data row5 col3" >0.738000</td>
+      <td id="T_4e6de_row5_col4" class="data row5 col4" >0.849000</td>
+      <td id="T_4e6de_row5_col5" class="data row5 col5" >0.139000</td>
+      <td id="T_4e6de_row5_col6" class="data row5 col6" >0.746 – 0.861</td>
+    </tr>
+    <tr>
+      <th id="T_4e6de_level0_row6" class="row_heading level0 row6" >Gradient Boosting</th>
+      <td id="T_4e6de_row6_col0" class="data row6 col0" >0.804000</td>
+      <td id="T_4e6de_row6_col1" class="data row6 col1" >0.766000</td>
+      <td id="T_4e6de_row6_col2" class="data row6 col2" >0.710000</td>
+      <td id="T_4e6de_row6_col3" class="data row6 col3" >0.737000</td>
+      <td id="T_4e6de_row6_col4" class="data row6 col4" >0.830000</td>
+      <td id="T_4e6de_row6_col5" class="data row6 col5" >0.152000</td>
+      <td id="T_4e6de_row6_col6" class="data row6 col6" >0.740 – 0.856</td>
+    </tr>
+  </tbody>
+</table>
+</div><pre class="saida-txt">⚠️ Com apenas 179 passageiros no teste, 1 acerto a mais ou a menos muda a acurácia em 0.56 p.p. Diferenças menores que ~5 p.p. entre modelos NÃO são estatisticamente distinguíveis.
+</pre></div></div>
+<div class="celula" id="cel-36"><div class="cel-topo"><span class="cel-rotulo">Célula de código 36</span><button class="btn-copiar" type="button" data-alvo="cod-36">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-36"># O modelo escolhido é realmente melhor que a regra de uma linha? Teste exato nos pares discordantes (McNemar exato)
+from scipy.stats import binomtest
+regra = (X_te[&quot;Sex&quot;] == &quot;female&quot;).astype(int).values
+for nome in [nome_melhor, &quot;Regressão Logística&quot;]:
+    pm = (probas_te[nome] &gt;= 0.5).astype(int); yt = y_te.values
+    so_modelo = int(((pm == yt) &amp; (regra != yt)).sum()); so_regra = int(((pm != yt) &amp; (regra == yt)).sum())
+    print(f&quot;{nome:22s}: acerta e a regra erra = {so_modelo:2d} | erra e a regra acerta = {so_regra:2d} | p (McNemar exato) = {binomtest(so_modelo, so_modelo + so_regra).pvalue:.3f}&quot;)
+
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+# (a) Curvas ROC
+for nome, pr in probas_te.items():
+    fpr, tpr, _ = roc_curve(y_te, pr)
+    axes[0].plot(fpr, tpr, lw=2.5 if nome == nome_melhor else 1.3, label=f&quot;{nome} (AUC={roc_auc_score(y_te, pr):.3f})&quot;)
+axes[0].plot([0, 1], [0, 1], &quot;k--&quot;, lw=1)
+axes[0].set(title=&quot;Curvas ROC (teste)&quot;, xlabel=&quot;Falsos positivos&quot;, ylabel=&quot;Verdadeiros positivos&quot;); axes[0].legend(fontsize=8, loc=&quot;lower right&quot;)
+
+# (b) Matriz de confusão do melhor modelo
+pred_melhor = (probas_te[nome_melhor] &gt;= 0.5).astype(int)
+ConfusionMatrixDisplay(confusion_matrix(y_te, pred_melhor), display_labels=[&quot;Morreu&quot;, &quot;Sobreviveu&quot;]).plot(ax=axes[1], cmap=&quot;Blues&quot;, colorbar=False)
+axes[1].set_title(f&quot;Matriz de confusão: {nome_melhor}&quot;); axes[1].grid(False)
+
+# (c) Calibração: quando o modelo diz &quot;70%&quot;, ~70% sobrevivem?
+fp, mp = calibration_curve(y_te, probas_te[nome_melhor], n_bins=6, strategy=&quot;quantile&quot;)
+axes[2].plot(mp, fp, &quot;o-&quot;, color=COR_SOBREVIVEU, label=nome_melhor); axes[2].plot([0, 1], [0, 1], &quot;k--&quot;, label=&quot;calibração perfeita&quot;)
+axes[2].set(title=&quot;Curva de calibração (teste)&quot;, xlabel=&quot;Probabilidade prevista&quot;, ylabel=&quot;Fração observada de sobreviventes&quot;); axes[2].legend()
+plt.tight_layout(); plt.show()
+print(classification_report(y_te, pred_melhor, target_names=[&quot;Morreu&quot;, &quot;Sobreviveu&quot;], digits=3))</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Gradient Boosting     : acerta e a regra erra = 16 | erra e a regra acerta = 11 | p (McNemar exato) = 0.442
+Regressão Logística   : acerta e a regra erra = 15 | erra e a regra acerta =  3 | p (McNemar exato) = 0.008
+</pre><figure><img loading="lazy" src="img/fig-20.png" alt="Gráfico 20: 9.3 Avaliação final no conjunto de teste (uma única vez)"><figcaption>Figura 20. 9.3 Avaliação final no conjunto de teste (uma única vez)</figcaption></figure><pre class="saida-txt">              precision    recall  f1-score   support
+
+      Morreu      0.826     0.864     0.844       110
+  Sobreviveu      0.766     0.710     0.737        69
+
+    accuracy                          0.804       179
+   macro avg      0.796     0.787     0.791       179
+weighted avg      0.803     0.804     0.803       179
+
+</pre></div></div>
+<section class="texto leitura"><p><strong>Leitura honesta dos resultados de teste:</strong>
+* O modelo escolhido pela validação cruzada (Gradient Boosting) obteve 80,4% de acurácia no teste; a regressão logística, 84,4%. <strong>Isso não significa que a logística seja "melhor"</strong>: com n = 179, o intervalo de 95% da acurácia tem ±6 p.p., e na validação cruzada (muito mais dados) os dois ficaram empatados (83%). Não trocamos de modelo depois de ver o teste, pois isso o contaminaria.
+* Todos os modelos superam a regra de uma linha (77,7% no teste) por 1,6 a 6,7 p.p., mas, no teste de McNemar, a diferença do modelo escolhido para a regra <strong>não é estatisticamente significativa</strong> (p ≈ 0,44). Com 179 passageiros não há poder para distinguir.
+* Como o teste é pequeno, é prudente focar na validação cruzada (muito mais dados) e na comparação com as linhas de base. O que ganhamos com o protocolo é <strong>rigor</strong> (pipeline sem vazamento, validação repetida, intervalos de confiança) e <strong>interpretabilidade</strong>. Com estes dados a acurácia parece ter um teto perto de 82–85%.
+* O modelo erra mais ao prever sobreviventes: o recall da classe "Sobreviveu" fica perto de 70%.</p></section>
+<section class="texto"><h2 id="10-diagnóstico-do-modelo-o-que-ele-aprendeu-e-onde-erra">10. Diagnóstico do modelo: o que ele aprendeu e onde erra</h2>
+<h3 id="101-importância-por-permutação">10.1 Importância por permutação</h3>
+<p>Embaralhamos uma variável por vez no conjunto de teste e medimos quanto o AUC cai. Quanto maior a queda, mais o modelo depende dela. (Funciona com qualquer modelo e usa as variáveis originais, antes do one-hot.)</p></section>
+<div class="celula" id="cel-37"><div class="cel-topo"><span class="cel-rotulo">Célula de código 37</span><button class="btn-copiar" type="button" data-alvo="cod-37">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-37">melhor = tunados[nome_melhor].best_estimator_
+imp = permutation_importance(melhor, X_te, y_te, scoring=&quot;roc_auc&quot;, n_repeats=50, random_state=SEED, n_jobs=-1)
+imp_df = pd.DataFrame({&quot;var&quot;: X_te.columns, &quot;queda_AUC&quot;: imp.importances_mean, &quot;dp&quot;: imp.importances_std}).sort_values(&quot;queda_AUC&quot;)
+fig, ax = plt.subplots(figsize=(8, 4.6))
+ax.barh(imp_df[&quot;var&quot;], imp_df[&quot;queda_AUC&quot;], xerr=imp_df[&quot;dp&quot;], color=COR_SOBREVIVEU, ecolor=&quot;black&quot;, capsize=3)
+ax.set(title=f&quot;Importância por permutação ({nome_melhor})&quot;, xlabel=&quot;Queda do AUC no teste ao embaralhar a variável&quot;)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-21.png" alt="Gráfico 21: 10.1 Importância por permutação"><figcaption>Figura 21. 10.1 Importância por permutação</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> o <strong>título</strong> é de longe a variável mais importante (queda de ~0,13 no AUC), seguido de sexo, tamanho do grupo de bilhete e classe. Tarifa, porto, SibSp e Parch têm importância ≈ 0: a informação que carregam já está em outras variáveis. Cuidado: variáveis redundantes (título e sexo) <em>dividem</em> a importância, então cada uma individualmente parece menor do que o seu valor conjunto.</p></section>
+<section class="texto"><h3 id="102-o-que-diz-a-regressão-logística-interpretável">10.2 O que diz a regressão logística (interpretável)</h3>
+<p>Mesmo que outro modelo seja ligeiramente melhor, a regressão logística é a que nos dá coeficientes legíveis. Variáveis numéricas estão padronizadas (efeito de +1 desvio-padrão); categorias são comparadas a "tudo o mais constante".</p></section>
+<div class="celula" id="cel-38"><div class="cel-topo"><span class="cel-rotulo">Célula de código 38</span><button class="btn-copiar" type="button" data-alvo="cod-38">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-38">lr_pipe = tunados[&quot;Regressão Logística&quot;].best_estimator_
+nomes = lr_pipe.named_steps[&quot;pre&quot;].get_feature_names_out()
+nomes = [n.replace(&quot;num__&quot;, &quot;&quot;).replace(&quot;cat__&quot;, &quot;&quot;).replace(&quot;oh__&quot;, &quot;&quot;) for n in nomes]
+coefs = pd.Series(lr_pipe.named_steps[&quot;modelo&quot;].coef_[0], index=nomes).sort_values()
+fig, ax = plt.subplots(figsize=(8, 7))
+ax.barh(coefs.index, coefs.values, color=[COR_SOBREVIVEU if v &gt; 0 else COR_MORREU for v in coefs.values])
+ax.axvline(0, color=&quot;black&quot;, lw=0.8)
+ax.set(title=&quot;Coeficientes da Regressão Logística (log-odds)&quot;, xlabel=&quot;← reduz chance de sobreviver | aumenta →&quot;)
+ax.tick_params(axis=&quot;y&quot;, labelsize=8)
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-22.png" alt="Gráfico 22: 10.2 O que diz a regressão logística (interpretável)"><figcaption>Figura 22. 10.2 O que diz a regressão logística (interpretável)</figcaption></figure></div></div>
+<section class="texto"><h3 id="103-escolha-do-limiar-de-decisão">10.3 Escolha do limiar de decisão</h3>
+<p>O limiar de 0,5 é uma convenção. Usando <strong>previsões fora da amostra obtidas no treino</strong> (validação cruzada), vemos como acurácia e F1 variam, sem espiar o teste.</p></section>
+<div class="celula" id="cel-39"><div class="cel-topo"><span class="cel-rotulo">Célula de código 39</span><button class="btn-copiar" type="button" data-alvo="cod-39">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-39">oof = cross_val_predict(melhor, X_tr, y_tr, cv=cv_grid, method=&quot;predict_proba&quot;)[:, 1]
+limiares = np.linspace(0.2, 0.8, 61)
+acc_l = [accuracy_score(y_tr, oof &gt;= t) for t in limiares]
+f1_l = [f1_score(y_tr, oof &gt;= t) for t in limiares]
+t_acc, t_f1 = limiares[int(np.argmax(acc_l))], limiares[int(np.argmax(f1_l))]
+
+fig, ax = plt.subplots(figsize=(8.5, 3.8))
+ax.plot(limiares, acc_l, label=&quot;Acurácia&quot;, color=COR_SOBREVIVEU); ax.plot(limiares, f1_l, label=&quot;F1&quot;, color=&quot;#f9a03f&quot;)
+ax.axvline(0.5, color=&quot;gray&quot;, ls=&quot;:&quot;, label=&quot;limiar 0,5&quot;)
+ax.axvline(t_acc, color=COR_SOBREVIVEU, ls=&quot;--&quot;, alpha=0.6); ax.axvline(t_f1, color=&quot;#f9a03f&quot;, ls=&quot;--&quot;, alpha=0.6)
+ax.set(title=&quot;Desempenho (validação cruzada no treino) × limiar&quot;, xlabel=&quot;Limiar de decisão&quot;, ylabel=&quot;Métrica&quot;); ax.legend()
+plt.tight_layout(); plt.show()
+print(f&quot;Limiar que maximiza acurácia (treino/CV): {t_acc:.2f} | maximiza F1: {t_f1:.2f}&quot;)
+print(f&quot;No teste → acurácia com 0,50: {accuracy_score(y_te, probas_te[nome_melhor] &gt;= 0.5):.3f} | &quot;
+      f&quot;com {t_acc:.2f}: {accuracy_score(y_te, probas_te[nome_melhor] &gt;= t_acc):.3f}&quot;)</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-23.png" alt="Gráfico 23: 10.3 Escolha do limiar de decisão"><figcaption>Figura 23. 10.3 Escolha do limiar de decisão</figcaption></figure><pre class="saida-txt">Limiar que maximiza acurácia (treino/CV): 0.37 | maximiza F1: 0.37
+No teste → acurácia com 0,50: 0.804 | com 0.37: 0.799
+</pre></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> o limiar que maximiza F1 e acurácia na validação cruzada é ~0,37 (um pouco mais "generoso" com a classe <em>sobreviveu</em>, que é a minoritária), mas no teste isso não muda a acurácia de forma relevante. Se o custo de deixar de identificar um sobrevivente fosse maior que o de um falso alarme, baixar o limiar aumentaria o <em>recall</em>; é uma decisão de uso, não de estatística.</p></section>
+<section class="texto"><h3 id="104-análise-dos-erros-quem-o-modelo-não-consegue-prever">10.4 Análise dos erros: quem o modelo não consegue prever?</h3></section>
+<div class="celula" id="cel-40"><div class="cel-topo"><span class="cel-rotulo">Célula de código 40</span><button class="btn-copiar" type="button" data-alvo="cod-40">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-40">analise = df.loc[X_te.index, [&quot;Name&quot;, &quot;Sex&quot;, &quot;Pclass&quot;, &quot;Age&quot;, &quot;Title_grp&quot;, &quot;Fare&quot;, &quot;FamilySize&quot;, &quot;Survived&quot;]].copy()
+analise[&quot;prob&quot;] = probas_te[nome_melhor]
+analise[&quot;pred&quot;] = (analise[&quot;prob&quot;] &gt;= 0.5).astype(int)
+analise[&quot;erro&quot;] = (analise[&quot;pred&quot;] != analise[&quot;Survived&quot;]).astype(int)
+
+print(&quot;Taxa de erro por grupo (teste):&quot;)
+tab_err = analise.groupby([&quot;Sex&quot;, &quot;Pclass&quot;])[&quot;erro&quot;].agg([&quot;mean&quot;, &quot;sum&quot;, &quot;size&quot;]).rename(columns={&quot;mean&quot;: &quot;taxa de erro&quot;, &quot;sum&quot;: &quot;erros&quot;, &quot;size&quot;: &quot;n&quot;})
+display(tab_err.round(3))
+
+# Erros mais &quot;confiantes&quot;: o modelo tinha certeza e errou
+analise[&quot;confianca_no_erro&quot;] = np.where(analise[&quot;pred&quot;] == 1, analise[&quot;prob&quot;], 1 - analise[&quot;prob&quot;])
+print(&quot;\nErros mais confiantes:&quot;)
+display(analise[analise[&quot;erro&quot;] == 1].sort_values(&quot;confianca_no_erro&quot;, ascending=False)
+        [[&quot;Name&quot;, &quot;Sex&quot;, &quot;Pclass&quot;, &quot;Age&quot;, &quot;Survived&quot;, &quot;prob&quot;]].head(8).round(2).reset_index(drop=True))</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><pre class="saida-txt">Taxa de erro por grupo (teste):
+</pre><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th></th>
+      <th>taxa de erro</th>
+      <th>erros</th>
+      <th>n</th>
+    </tr>
+    <tr>
+      <th>Sex</th>
+      <th>Pclass</th>
+      <th></th>
+      <th></th>
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th rowspan="3" valign="top">female</th>
+      <th>1</th>
+      <td>0.067</td>
+      <td>1</td>
+      <td>15</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.056</td>
+      <td>1</td>
+      <td>18</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.286</td>
+      <td>8</td>
+      <td>28</td>
+    </tr>
+    <tr>
+      <th rowspan="3" valign="top">male</th>
+      <th>1</th>
+      <td>0.433</td>
+      <td>13</td>
+      <td>30</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>0.188</td>
+      <td>3</td>
+      <td>16</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>0.125</td>
+      <td>9</td>
+      <td>72</td>
+    </tr>
+  </tbody>
+</table>
+</div></div><pre class="saida-txt">
+Erros mais confiantes:
+</pre><div class="tabela"><div>
+<style scoped>
+    .dataframe tbody tr th:only-of-type {
+        vertical-align: middle;
+    }
+
+    .dataframe tbody tr th {
+        vertical-align: top;
+    }
+
+    .dataframe thead th {
+        text-align: right;
+    }
+</style>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Name</th>
+      <th>Sex</th>
+      <th>Pclass</th>
+      <th>Age</th>
+      <th>Survived</th>
+      <th>prob</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>Harris, Mr. George</td>
+      <td>male</td>
+      <td>2</td>
+      <td>62.0</td>
+      <td>1</td>
+      <td>0.02</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>Tornquist, Mr. William Henry</td>
+      <td>male</td>
+      <td>3</td>
+      <td>25.0</td>
+      <td>1</td>
+      <td>0.02</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>Hedman, Mr. Oskar Arvid</td>
+      <td>male</td>
+      <td>3</td>
+      <td>27.0</td>
+      <td>1</td>
+      <td>0.02</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>Allison, Miss. Helen Loraine</td>
+      <td>female</td>
+      <td>1</td>
+      <td>2.0</td>
+      <td>0</td>
+      <td>0.97</td>
+    </tr>
+    <tr>
+      <th>4</th>
+      <td>Butt, Major. Archibald Willingham</td>
+      <td>male</td>
+      <td>1</td>
+      <td>45.0</td>
+      <td>0</td>
+      <td>0.95</td>
+    </tr>
+    <tr>
+      <th>5</th>
+      <td>Minahan, Dr. William Edward</td>
+      <td>male</td>
+      <td>1</td>
+      <td>44.0</td>
+      <td>0</td>
+      <td>0.94</td>
+    </tr>
+    <tr>
+      <th>6</th>
+      <td>Johannesen-Bratthammer, Mr. Bernt</td>
+      <td>male</td>
+      <td>3</td>
+      <td>NaN</td>
+      <td>1</td>
+      <td>0.07</td>
+    </tr>
+    <tr>
+      <th>7</th>
+      <td>Frolicher-Stehli, Mr. Maxmillian</td>
+      <td>male</td>
+      <td>1</td>
+      <td>60.0</td>
+      <td>1</td>
+      <td>0.09</td>
+    </tr>
+  </tbody>
+</table>
+</div></div></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> os erros se concentram onde o desfecho foi mais próximo de "cara ou coroa": <strong>homens de 1ª classe</strong> (43% de erro, 13 de 30; cerca de um terço sobreviveu) e <strong>mulheres de 3ª classe</strong> (29%). Entre os erros mais confiantes estão uma menina de 2 anos da 1ª classe que morreu (família Allison) e homens de 3ª classe que sobreviveram. O que resta de incerteza parece vir de <strong>acaso e circunstâncias</strong> (posição no navio, acesso a um bote, decisões individuais) que não estão nos dados. Daí o teto de acurácia.</p></section>
+<section class="texto"><h3 id="105-curva-de-aprendizado-mais-dados-ajudariam">10.5 Curva de aprendizado: mais dados ajudariam?</h3></section>
+<div class="celula" id="cel-41"><div class="cel-topo"><span class="cel-rotulo">Célula de código 41</span><button class="btn-copiar" type="button" data-alvo="cod-41">Copiar código</button></div><pre class="codigo"><code class="language-python" id="cod-41">tam, tr_sc, va_sc = learning_curve(melhor, X_tr, y_tr, cv=cv_grid, train_sizes=np.linspace(0.2, 1.0, 6),
+                                   scoring=&quot;accuracy&quot;, n_jobs=-1, random_state=SEED)
+fig, ax = plt.subplots(figsize=(8, 3.8))
+for sc, nome, cor in [(tr_sc, &quot;Treino&quot;, &quot;#f9a03f&quot;), (va_sc, &quot;Validação&quot;, COR_SOBREVIVEU)]:
+    ax.plot(tam, sc.mean(axis=1), &quot;o-&quot;, color=cor, label=nome)
+    ax.fill_between(tam, sc.mean(axis=1) - sc.std(axis=1), sc.mean(axis=1) + sc.std(axis=1), alpha=0.15, color=cor)
+ax.set(title=f&quot;Curva de aprendizado ({nome_melhor})&quot;, xlabel=&quot;Tamanho do conjunto de treino&quot;, ylabel=&quot;Acurácia&quot;); ax.legend()
+plt.tight_layout(); plt.show()</code></pre><div class="saida"><div class="saida-rotulo">Resultado</div><figure><img loading="lazy" src="img/fig-24.png" alt="Gráfico 24: 10.5 Curva de aprendizado: mais dados ajudariam?"><figcaption>Figura 24. 10.5 Curva de aprendizado: mais dados ajudariam?</figcaption></figure></div></div>
+<section class="texto leitura"><p><strong>Leitura:</strong> a acurácia de validação estabiliza em ~82% a partir de ~300 passageiros, enquanto a de treino cai de 97% para 91%. A lacuna persistente (~9 p.p.) indica algum <strong>sobreajuste</strong>, e que <strong>mais dados do mesmo tipo trariam pouco ganho</strong>; para avançar seria preciso informação nova (por exemplo, localização da cabine ou convés de embarque nos botes).</p></section>
+<section class="texto"><h2 id="11-resenha-dos-resultados">11. 📝 Resenha dos resultados</h2>
+<h3 id="panorama">Panorama</h3>
+<p>Os dados cobrem <strong>891 passageiros</strong> (uma amostra dos cerca de 2.200 a bordo); <strong>38,4% sobreviveram</strong>. A principal conclusão é que o desfecho foi determinado, em larga medida, por <strong>quem a pessoa era</strong> (sexo, idade, classe social) e <strong>com quem viajava</strong>, e menos por variáveis "técnicas" como o porto de embarque.</p>
+<h3 id="respostas-às-perguntas-do-início">Respostas às perguntas do início</h3>
+<p><strong>1. Sexo, idade e classe: o que mais pesou?</strong>
+* <strong>Sexo</strong> foi o fator mais forte: 74% das mulheres sobreviveram contra 19% dos homens (risco relativo 3,9; <em>odds ratio</em> bruto 12,4; IC 95%: 8,9–17,1). Ajustado pelos demais fatores, o OR é ~14.
+* <strong>Classe</strong> vem em seguida: 63% (1ª), 47% (2ª) e 24% (3ª). Ajustado, só a 3ª classe se distingue da 1ª (OR 0,28).
+* <strong>Sexo e classe interagem</strong> (p ≈ 8×10⁻⁸): 97% das mulheres de 1ª e 92% das de 2ª sobreviveram, mas apenas 50% das de 3ª. Aos 30 anos, o modelo prevê 45% para uma mulher de 3ª classe e 50% para um homem de 1ª, ou seja, <strong>a classe social "comprou" a proteção do gênero</strong>. Entre os homens, só 14–16% (2ª/3ª) e 37% (1ª) sobreviveram.
+* <strong>Idade</strong> age de forma não linear e depende do sexo: crianças de 0–4 anos tiveram 68% de sobrevivência, e entre os homens a chance cai com a idade (cada década a mais reduz as <em>odds</em> em ~34% no modelo ajustado). A idade isolada praticamente não separa os grupos (P(superioridade) = 0,47; p = 0,16), pois seu efeito se esconde atrás do sexo e da faixa etária. "Mulheres e crianças primeiro" vale, mas <strong>muito menos na 3ª classe</strong>: apenas 42% das crianças de 3ª classe sobreviveram.</p>
+<p><strong>2. Tarifa e porto de embarque</strong>
+* A <strong>tarifa</strong> está associada à sobrevivência (P(superioridade) = 0,69; 22% de sobrevivência no quintil mais baixo vs. 64% no mais alto), mas no modelo ajustado perde significância (OR = 1,35 por unidade de log; p = 0,08): seu efeito é largamente absorvido por classe, cabine e tamanho do grupo. Dentro da 1ª classe o gradiente persiste (44% → 77% do tercil mais baixo ao mais alto), o que provavelmente reflete cabine/localização.
+* O <strong>porto</strong> é um caso clássico de <strong>confusão</strong>: Cherbourg parece muito melhor (55% vs. 34% em Southampton, OR bruto 2,44) porque 51% dos seus passageiros eram de 1ª classe. Controlando classe e sexo o OR cai para 1,81, e no modelo completo para 1,36 (p = 0,21, não significativo). Resta, no máximo, um efeito pequeno.</p>
+<p><strong>3. Família</strong>
+* Há um padrão em <strong>"U invertido"</strong>: viajar sozinho (30%) é pior que família de 2–4 pessoas (55–72%); famílias com 5 ou mais, pior ainda (16%). O mesmo vale para o número de pessoas no mesmo bilhete.
+* No modelo ajustado, a única penalidade que sobrevive é a de <strong>famílias grandes (OR = 0,08 vs. quem viajava só)</strong>; famílias pequenas deixam de se distinguir de quem viajava sozinho depois de controlar sexo, classe e cabine.
+* Pessoas com o mesmo bilhete tendem a <strong>compartilhar o destino</strong> (76% dos pares com o mesmo desfecho vs. ~52,5% esperado ao acaso; p &lt; 0,001), coerente com evacuações em grupo, embora parte disso seja homogeneidade (mesmo sexo/classe).</p>
+<p><strong>4. É possível prever a sobrevivência?</strong>
+* <strong>Sim, mas só até certo ponto.</strong> Em validação cruzada repetida (5×3), todos os modelos (regressão logística, SVM, random forest, gradient boosting) ficaram entre <strong>81% e 83%</strong> de acurácia e <strong>AUC de 0,86 a 0,89</strong>, estatisticamente empatados. Isso é apenas <strong>~2–5 pontos acima da regra de uma linha</strong> "mulher sobrevive, homem morre" (≈ 79%).
+* No conjunto de teste (n = 179), o modelo escolhido pela validação (Gradient Boosting) obteve 80,4% (IC95% 74–86%) e a regressão logística 84,4%; essa diferença está dentro do ruído amostral (±6 p.p.). A diferença do modelo escolhido para a regra de uma linha <strong>não foi estatisticamente significativa</strong> (McNemar exato, p ≈ 0,44).
+* As variáveis que mais sustentam a previsão são <strong>título</strong> (que sintetiza sexo, idade e estado civil), <strong>sexo</strong>, <strong>tamanho do grupo de bilhete</strong> e <strong>classe</strong>. Tarifa, porto, SibSp e Parch contribuem praticamente nada depois dessas.
+* Os erros concentram-se em <strong>homens de 1ª classe</strong> e <strong>mulheres de 3ª classe</strong>, grupos com desfecho próximo de "cara ou coroa" nos dados; a curva de aprendizado mostra que mais dados do mesmo tipo trariam pouco ganho. Para melhorar seria preciso <strong>informação nova</strong> (por exemplo, localização da cabine e distância dos botes).</p>
+<h3 id="boas-práticas-adotadas-neste-notebook">Boas práticas adotadas neste notebook</h3>
+<ul>
+<li>Taxas sempre com <strong>intervalos de confiança</strong>, para não superinterpretar grupos pequenos.</li>
+<li>Testes adequados à natureza dos dados (<strong>qui-quadrado + V de Cramér</strong>, Mann-Whitney, regressão logística com <em>odds ratios</em> e testes de razão de verossimilhança).</li>
+<li>Imputação da idade por <strong>título × classe</strong>, realizada <strong>dentro do pipeline</strong> para evitar vazamento de dados.</li>
+<li>Novos atributos (título, grupo de bilhete, cabine/convés, categoria de família) e investigação explícita de <strong>confusão</strong> (porto × classe) e <strong>interação</strong> (sexo × classe).</li>
+<li>Modelagem com linhas de base, validação cruzada repetida, ajuste de hiperparâmetros, calibração, importância por permutação e análise de erros, deixando claro que as diferenças entre modelos são pequenas diante da incerteza.</li>
+</ul>
+<h3 id="limitações">Limitações</h3>
+<ul>
+<li><strong>Amostra</strong> de 891 passageiros (o teste tem apenas 179): diferenças de poucos pontos percentuais são ruído.</li>
+<li><strong>20% das idades</strong> foram imputadas e <strong>77% das cabines</strong> são desconhecidas (e a ausência é informativa: relacionada à classe).</li>
+<li>Análise <strong>observacional</strong>: os <em>odds ratios</em> descrevem associações, não causas. O desfecho dependeu de fatores não medidos (posição no navio, acesso aos botes, decisões individuais, comportamento da tripulação).</li>
+<li>A contagem de passageiros por bilhete (<code>TicketGroupSize</code>) usa todos os 891 registros, o que não vaza o desfecho, mas depende de o conjunto ser representativo dos grupos reais.</li>
+<li>Não foi feita nenhuma correção para múltiplas comparações; os p-valores devem ser lidos como evidência descritiva, não como confirmação.</li>
+</ul>
+<h3 id="conclusão">Conclusão</h3>
+<p>O Titanic mostra, em dados, um padrão de <strong>"proteção desigual"</strong>: valeu a regra <em>mulheres e crianças primeiro</em>, mas a proteção foi <strong>fortemente modulada pela classe social</strong>: uma mulher de 3ª classe tinha chance semelhante à de um homem de 1ª, e uma criança de 3ª classe tinha bem menos chance que uma de 2ª. Grande parte do que parece ser efeito de porto ou tarifa é, na verdade, efeito de classe. Modelos sofisticados quase não superam uma regra simples (sexo), e o restante da variação parece ser circunstância e acaso, não capturados pelos dados.</p></section>
+<section class="texto" id="exercicios-bloco">
+<h2 id="exercicios">Exercícios propostos</h2>
+<ol>
+<li><strong>Imputação.</strong> Compare três estratégias para <code>Age</code> (mediana geral, mediana por sexo × classe, mediana por título × classe) usando validação cruzada. A escolha muda o AUC? Quanto?</li>
+<li><strong>Regularização.</strong> Troque a regressão logística por uma versão com penalização L1 (<code>penalty="l1", solver="liblinear"</code>) e veja quais coeficientes vão a zero. Isso concorda com a importância por permutação?</li>
+<li><strong>Interação no ML.</strong> Adicione manualmente a interação <code>Sexo × Classe</code> à regressão logística e compare com a floresta aleatória. O que a floresta "descobre" sozinha?</li>
+<li><strong>Vazamento de propósito.</strong> Calcule a mediana de idade por título usando <em>todo</em> o conjunto (antes do <code>train_test_split</code>) e compare as métricas. O vazamento é grande? Por que, neste caso, ele é pequeno, e quando seria grave?</li>
+<li><strong>Ranking do Kaggle.</strong> Treine o melhor modelo em todo o <code>train.csv</code>, aplique ao <code>test.csv</code> e envie o CSV. Compare a pontuação do <em>leaderboard</em> com a validação cruzada. Por que diferem?</li>
+<li><strong>Causalidade.</strong> Escreva, em 10 linhas, por que "a tarifa não importa depois de controlar a classe" <em>não</em> prova que o dinheiro era irrelevante para sobreviver.</li>
+</ol>
+</section>
+
+<section class="texto citar" id="citar-bloco">
+<h2 id="citar">Como citar e licença</h2>
+<p><strong>Página de aula:</strong></p>
+<blockquote>COIMBRA, Paulo C. <strong>Titanic: da análise exploratória à predição de sobrevivência</strong> [página de aula]. Juiz de Fora: UFJF, 2026. Disponível em: https://pauloccoimbra.github.io/titanic-eda-ml-aula/. Acesso em: (data).</blockquote>
+<p><strong>Notebook:</strong></p>
+<blockquote>COIMBRA, Paulo C. <strong>Titanic_Analise_Completa.ipynb</strong> [notebook Jupyter]. Juiz de Fora: UFJF, 2026. Disponível em: https://github.com/pauloccoimbra/titanic-eda-ml-aula/blob/main/notebook/Titanic_Analise_Completa.ipynb.</blockquote>
+<p><strong>Artigo:</strong></p>
+<blockquote>COIMBRA, Paulo C. <strong>Do Titanic ao aprendizado de máquina: um roteiro didático de análise de dados, inferência e predição</strong>. Juiz de Fora: UFJF, 2026. Disponível em: https://github.com/pauloccoimbra/titanic-eda-ml-aula/tree/main/artigo.</blockquote>
+<p><strong>BibTeX (repositório):</strong></p>
+<pre class="codigo"><code class="language-latex" id="cod-bib">@misc{coimbra2026titanic,
+  author = {Coimbra, Paulo C.},
+  title  = {Titanic: da an{\'a}lise explorat{\'o}ria {\`a} predi{\c c}{\~a}o de sobreviv{\^e}ncia: material did{\'a}tico},
+  year   = {2026},
+  howpublished = {\url{https://github.com/pauloccoimbra/titanic-eda-ml-aula}},
+  note   = {Licen{\c c}as: MIT (c{\'o}digo) e CC BY 4.0 (textos)}
+}</code></pre>
+<p><strong>Licenças.</strong> Código: <a href="https://opensource.org/licenses/MIT">MIT</a>. Textos, figuras e comentários: <a href="https://creativecommons.org/licenses/by/4.0/deed.pt-br">CC BY 4.0</a> (reuse e adapte, citando a fonte). Os dados são o <code>train.csv</code> da competição do Kaggle, de uso educacional; consulte as regras da competição.</p>
+<p class="peq">Material elaborado com assistência de IA (Claude, da Anthropic) e revisado pelo autor.</p>
+</section>
+
+  <footer class="rodape">
+    <p>© 2026 Paulo C. Coimbra · UFJF · Código MIT · Textos CC BY 4.0 ·
+    <a href="https://github.com/pauloccoimbra/titanic-eda-ml-aula">Repositório no GitHub</a></p>
+  </footer>
+  </main>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js" crossorigin="anonymous"></script>
+<script>(function(){
+  var R = document.documentElement;
+  function guarda(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+  function le(k){try{return localStorage.getItem(k)}catch(e){return null}}
+  // tema
+  var t = le('tema'); if(t) R.setAttribute('data-tema', t);
+  document.getElementById('btn-tema').onclick = function(){
+    var atual = R.getAttribute('data-tema');
+    var escuroSistema = window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches;
+    var novo = (atual ? atual === 'escuro' : escuroSistema) ? 'claro' : 'escuro';
+    R.setAttribute('data-tema', novo); guarda('tema', novo);
+  };
+  // realce de sintaxe (se a biblioteca carregou)
+  if (window.hljs) { document.querySelectorAll('pre.codigo code').forEach(function(b){ try{ hljs.highlightElement(b); }catch(e){} }); }
+  // copiar
+  function copiar(texto, btn, rotulo){
+    function ok(){ if(!btn) return; var o = btn.textContent; btn.textContent = rotulo || 'Copiado ✓'; btn.classList.add('ok'); setTimeout(function(){ btn.textContent = o; btn.classList.remove('ok'); }, 1600); }
+    if (navigator.clipboard && window.isSecureContext) { navigator.clipboard.writeText(texto).then(ok, fallback); } else { fallback(); }
+    function fallback(){ var ta = document.createElement('textarea'); ta.value = texto; ta.style.position='fixed'; ta.style.opacity='0'; document.body.appendChild(ta); ta.select(); try{ document.execCommand('copy'); ok(); }catch(e){} document.body.removeChild(ta); }
+  }
+  document.querySelectorAll('.btn-copiar').forEach(function(b){
+    b.onclick = function(){ copiar(document.getElementById(b.dataset.alvo).textContent, b); };
+  });
+  document.getElementById('btn-copiar-tudo').onclick = function(){
+    var blocos = [].slice.call(document.querySelectorAll('.celula pre.codigo code'));
+    var txt = blocos.map(function(c,i){ return '#%% Célula ' + (i+1) + '\n' + c.textContent.replace(/\s+$/,''); }).join('\n\n');
+    copiar(txt, this, 'Copiado ✓ (' + blocos.length + ' células)');
+  };
+  // modo apresentação
+  var ap = document.getElementById('btn-apres');
+  ap.onclick = function(){ var on = document.body.classList.toggle('apres'); ap.setAttribute('aria-pressed', on); };
+  // menu móvel
+  var ind = document.getElementById('indice');
+  document.getElementById('btn-menu').onclick = function(){ ind.classList.toggle('aberto'); };
+  ind.addEventListener('click', function(e){ if(e.target.tagName==='A') ind.classList.remove('aberto'); });
+  // barra de progresso
+  var barra = document.getElementById('progresso');
+  function prog(){ var h = document.documentElement; var p = h.scrollTop / Math.max(1, h.scrollHeight - h.clientHeight); barra.style.width = (p*100) + '%'; }
+  addEventListener('scroll', prog, {passive:true}); prog();
+  // índice: seção ativa
+  var links = {}; ind.querySelectorAll('a').forEach(function(a){ links[a.getAttribute('href').slice(1)] = a; });
+  var heads = [].slice.call(document.querySelectorAll('#conteudo h2[id]'));
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(es){
+      es.forEach(function(e){ if(e.isIntersecting){ ind.querySelectorAll('a.ativo').forEach(function(x){x.classList.remove('ativo')}); var a = links[e.target.id]; if(a){ a.classList.add('ativo'); a.scrollIntoView({block:'nearest'}); } } });
+    }, {rootMargin:'-80px 0px -70% 0px'});
+    heads.forEach(function(h){ io.observe(h); });
+  }
+})();
+</script>
+<script data-goatcounter="https://titanic-eda-ml-aula.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
